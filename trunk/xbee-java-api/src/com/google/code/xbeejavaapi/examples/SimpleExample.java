@@ -4,7 +4,7 @@
  */
 package com.google.code.xbeejavaapi.examples;
 
-import com.google.code.xbeejavaapi.ATCommandFactory;
+import com.google.code.xbeejavaapi.api.ATCommandPayloadFactory;
 import com.google.code.xbeejavaapi.XBee;
 import com.google.code.xbeejavaapi.XBeeFactory;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
@@ -26,7 +26,18 @@ public class SimpleExample {
 
         XBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
 
-        xbee.setAPIMode();
-        xbee.sendATCommand(new ATCommandFactory().d2(ATCommandFactory.D2LineState.DIGITAL_OUTPUT_LOW));
+        xbee.sendATCommand(new ATCommandPayloadFactory().setD2(ATCommandPayloadFactory.D2LineState.DIGITAL_OUTPUT_LOW));
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(SimpleExample.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        xbee.sendATCommand(new ATCommandPayloadFactory().setD2(ATCommandPayloadFactory.D2LineState.DIGITAL_OUTPUT_HIGH));
+
+        System.out.println("Quering D2");
+
+        xbee.sendATCommand(new ATCommandPayloadFactory().queryD2());
+
+        xbee.disconnect();
     }
 }

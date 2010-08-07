@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.google.code.xbeejavaapi;
+package com.google.code.xbeejavaapi.api;
 
 import org.apache.log4j.Logger;
 
@@ -10,17 +10,17 @@ import org.apache.log4j.Logger;
  *
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
-public class ATCommand {
+public class ATCommandRequest {
 
-    private String command;
+    private ATCommand command;
     private int[] parameters;
 
-    public ATCommand(String command, int[] parameters) {
+    public ATCommandRequest(ATCommand command, int[] parameters) {
         this.command = command;
         this.parameters = parameters;
     }
 
-    public String getCommand() {
+    public ATCommand getCommand() {
         return command;
     }
 
