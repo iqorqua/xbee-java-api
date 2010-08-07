@@ -4,6 +4,7 @@
  */
 package com.google.code.xbeejavaapi;
 
+import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
@@ -13,7 +14,6 @@ import gnu.io.UnsupportedCommOperationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -29,7 +29,7 @@ public class XBeeFactory {
         this.serialPortName = serialPortName;
     }
 
-    public XBee newXBee() {
+    public XBee newXBee() throws XBeeOperationFailedException {
         {
             logger.debug("Creating XBee at port " + serialPortName);
             try {
@@ -39,11 +39,18 @@ public class XBeeFactory {
                 }
                 CommPort commPort = portIdentifier.open(this.getClass().getName(), 2000);
                 if (commPort instanceof SerialPort) {
-                    SerialPort serialPort = (SerialPort) commPort;
+                    final SerialPort serialPort = (SerialPort) commPort;
                     serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
                     InputStream in = serialPort.getInputStream();
                     OutputStream out = serialPort.getOutputStream();
-                    return new XBee(in, out);
+                    return new XBee(in, out) {
+
+                        @Override
+                        public void disconnect() {
+                            super.disconnect();
+                            serialPort.close();
+                        }
+                    };
                 } else {
                     logger.error(serialPortName + " is not a serial port");
                 }
