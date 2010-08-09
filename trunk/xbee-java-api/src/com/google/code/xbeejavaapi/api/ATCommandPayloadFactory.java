@@ -6,6 +6,7 @@ package com.google.code.xbeejavaapi.api;
 
 import java.nio.LongBuffer;
 import org.apache.log4j.Logger;
+import com.google.code.xbeejavaapi.api.Constants.*;
 
 /**
  *
@@ -140,11 +141,11 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setDE(int destinationEndpoint) {
-        return new ATCommandRequest(ATCommand.SE, new int[]{destinationEndpoint});
+        return new ATCommandRequest(ATCommand.DE, new int[]{destinationEndpoint});
     }
 
-    public ATCommandRequest querySDE() {
-        return new ATCommandRequest(ATCommand.SE, new int[]{});
+    public ATCommandRequest queryDE() {
+        return new ATCommandRequest(ATCommand.DE, new int[]{});
     }
 
     public ATCommandRequest setCL(long clusterIdentifier) {
@@ -172,14 +173,61 @@ public class ATCommandPayloadFactory {
     }
 
     /* Serial Interfacing (I/O) */
-//    AP("AP"),
-//    AO("AO"),
-//    BD("BD"),
-//    RO("RO"),
-//    FT("FT"),
-//    NB("NB"),
-//    D7("D7"),
-//    D6("D6"),
+    public ATCommandRequest setAP(APIMode mode) {
+        return new ATCommandRequest(ATCommand.AP, new int[]{mode.getValue()});
+    }
+
+    public ATCommandRequest queryAP() {
+        return new ATCommandRequest(ATCommand.AP, new int[]{});
+    }
+
+    public ATCommandRequest setAO(APIOutputFormat outputFormat) {
+        return new ATCommandRequest(ATCommand.AO, new int[]{outputFormat.getValue()});
+    }
+
+    public ATCommandRequest queryAO() {
+        return new ATCommandRequest(ATCommand.AO, new int[]{});
+    }
+
+    public ATCommandRequest setBD(BaudRate baudRate) {
+        return new ATCommandRequest(ATCommand.BD, new int[]{baudRate.getValue()});
+    }
+
+    public ATCommandRequest queryBD() {
+        return new ATCommandRequest(ATCommand.BD, new int[]{});
+    }
+
+    public ATCommandRequest setRO(int packetizationTimeout) {
+        return new ATCommandRequest(ATCommand.RO, new int[]{packetizationTimeout});
+    }
+
+    public ATCommandRequest queryRO() {
+        return new ATCommandRequest(ATCommand.RO, new int[]{});
+    }
+
+    public ATCommandRequest setFT(int flowControlThreshold) {
+        return new ATCommandRequest(ATCommand.FT, new int[]{flowControlThreshold});
+    }
+
+    public ATCommandRequest queryFT() {
+        return new ATCommandRequest(ATCommand.FT, new int[]{});
+    }
+
+    public ATCommandRequest setDIO7Configuration(DIO7Configuration dIO7Configuration) {
+        return new ATCommandRequest(ATCommand.D7, new int[]{dIO7Configuration.getValue()});
+    }
+
+    public ATCommandRequest queryDIO7Configuration() {
+        return new ATCommandRequest(ATCommand.D7, new int[]{});
+    }
+
+    public ATCommandRequest setDIO6Configuration(DIO6Configuration dIO6Configuration) {
+        return new ATCommandRequest(ATCommand.D6, new int[]{dIO6Configuration.getValue()});
+    }
+
+    public ATCommandRequest queryDIO6Configuration() {
+        return new ATCommandRequest(ATCommand.D6, new int[]{});
+    }
 //    /* I/O Commands */
 //    P0("P0"),
 //    P1("P1"),
@@ -205,7 +253,39 @@ public class ATCommandPayloadFactory {
 //    IC("IC"),
 //    IS("IS"),
 //    _1S("1S"),
-//    /* Diagnostics */
+    /* Diagnostics */
+
+    public ATCommandRequest queryVR() {
+        return new ATCommandRequest(ATCommand.VR, new int[]{});
+    }
+
+    public ATCommandRequest queryHV() {
+        return new ATCommandRequest(ATCommand.HV, new int[]{});
+    }
+
+    public ATCommandRequest queryER() {
+        return new ATCommandRequest(ATCommand.ER, new int[]{});
+    }
+
+    public ATCommandRequest queryGD() {
+        return new ATCommandRequest(ATCommand.GD, new int[]{});
+    }
+
+    public ATCommandRequest setRP(int value) {
+        return new ATCommandRequest(ATCommand.RP, new int[]{value});
+    }
+
+    public ATCommandRequest queryRP() {
+        return new ATCommandRequest(ATCommand.RP, new int[]{});
+    }
+
+    public ATCommandRequest queryTR() {
+        return new ATCommandRequest(ATCommand.TR, new int[]{});
+    }
+
+    public ATCommandRequest queryAI() {
+        return new ATCommandRequest(ATCommand.AI, new int[]{});
+    }
 //    VR("VR"),
 //    HV("HV"),
 //    ER("ER"),
