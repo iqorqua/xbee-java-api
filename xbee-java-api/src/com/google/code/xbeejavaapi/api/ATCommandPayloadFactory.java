@@ -286,17 +286,43 @@ public class ATCommandPayloadFactory {
     public ATCommandRequest queryAI() {
         return new ATCommandRequest(ATCommand.AI, new int[]{});
     }
-//    VR("VR"),
-//    HV("HV"),
-//    ER("ER"),
-//    GD("GD"),
-//    TR("TR"),
-//    AI("AI"),
-//    /* AT Command Options */
-//    CT("CT"),
-//    CN("CN"),
-//    GT("GT"),
-//    CC("CC"),
+    
+    /* AT Command Options */
+
+    public ATCommandRequest setCT(long timeout) {
+        return new ATCommandRequest(ATCommand.CT,
+                new int[]{
+                    (int) (timeout >> 8),
+                    (int) (timeout)});
+    }
+
+    public ATCommandRequest queryCT() {
+        return new ATCommandRequest(ATCommand.CT, new int[]{});
+    }
+
+    public ATCommandRequest CN() {
+        return new ATCommandRequest(ATCommand.CN, new int[]{});
+    }
+
+    public ATCommandRequest setGT(long time) {
+        return new ATCommandRequest(ATCommand.GT,
+                new int[]{
+                    (int) (time >> 8),
+                    (int) (time)});
+    }
+
+    //TODO: Check if this is valid
+    public ATCommandRequest queryGT() {
+        return new ATCommandRequest(ATCommand.GT, new int[]{});
+    }
+
+    public ATCommandRequest setCC(int character) {
+        return new ATCommandRequest(ATCommand.CC, new int[]{character});
+    }
+
+    public ATCommandRequest queryCC() {
+        return new ATCommandRequest(ATCommand.CC, new int[]{});
+    }
 //    /* Node Identification */
 //    NT("NT"),
 //    NI("NI"),
