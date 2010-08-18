@@ -4,8 +4,6 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import com.google.code.xbeejavaapi.api.TransmitStatus.DeliveryStatus;
-import com.google.code.xbeejavaapi.api.TransmitStatus.DiscoveryStatus;
 import org.apache.log4j.Logger;
 
 /**
@@ -22,9 +20,6 @@ public class TransmitStatusFactory {
      * @param data Frame bytes 4-n (excludes checksum) received from the module.
      */
     public TransmitStatus parse(int[] data) {
-        int retryCount = data[4];
-        DeliveryStatus deliveryStatus = DeliveryStatus.get(data[5]);
-        DiscoveryStatus discoveryStatus = TransmitStatus.DiscoveryStatus.get(data[6]);
-        return new TransmitStatus(retryCount, deliveryStatus, discoveryStatus);
+        return new TransmitStatus(data);
     }
 }

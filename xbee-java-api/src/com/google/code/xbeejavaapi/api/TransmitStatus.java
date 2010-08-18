@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
  *
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
-public class TransmitStatus {
+public class TransmitStatus extends FrameWithID {
 
     public enum DeliveryStatus {
 
@@ -67,10 +67,11 @@ public class TransmitStatus {
     private DeliveryStatus deliveryStatus;
     private DiscoveryStatus discoveryStatus;
 
-    public TransmitStatus(int transmitRetryCount, DeliveryStatus deliveryStatus, DiscoveryStatus discoveryStatus) {
-        this.transmitRetryCount = transmitRetryCount;
-        this.deliveryStatus = deliveryStatus;
-        this.discoveryStatus = discoveryStatus;
+    public TransmitStatus(int[] data) {
+        super(data);
+        transmitRetryCount = data[4];
+        deliveryStatus = DeliveryStatus.get(data[5]);
+        discoveryStatus = TransmitStatus.DiscoveryStatus.get(data[6]);
     }
 
     public DeliveryStatus getDeliveryStatus() {

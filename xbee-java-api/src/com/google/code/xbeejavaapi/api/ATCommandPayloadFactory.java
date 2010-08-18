@@ -4,9 +4,9 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import java.nio.LongBuffer;
 import org.apache.log4j.Logger;
 import com.google.code.xbeejavaapi.api.Constants.*;
+import java.util.Set;
 
 /**
  *
@@ -87,11 +87,7 @@ public class ATCommandPayloadFactory {
     public ATCommandRequest setDH(long addressHigh) {
         return new ATCommandRequest(
                 ATCommand.DH,
-                new int[]{
-                    (int) (addressHigh >> 24),
-                    (int) (addressHigh >> 16),
-                    (int) (addressHigh >> 8),
-                    (int) (addressHigh)});
+                to4Bytes(addressHigh));
     }
 
     public ATCommandRequest queryDH() {
@@ -101,11 +97,7 @@ public class ATCommandPayloadFactory {
     public ATCommandRequest setDL(long addressLow) {
         return new ATCommandRequest(
                 ATCommand.DL,
-                new int[]{
-                    (int) (addressLow >> 24),
-                    (int) (addressLow >> 16),
-                    (int) (addressLow >> 8),
-                    (int) (addressLow)});
+                to4Bytes(addressLow));
     }
 
     public ATCommandRequest queryDL() {
@@ -125,7 +117,7 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setHP(int hoppingChannel) {
-        return new ATCommandRequest(ATCommand.HP, new int[]{hoppingChannel});
+        return new ATCommandRequest(ATCommand.HP, to1Byte(hoppingChannel));
     }
 
     public ATCommandRequest queryHP() {
@@ -133,7 +125,7 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setSE(int sourceEndpoint) {
-        return new ATCommandRequest(ATCommand.SE, new int[]{sourceEndpoint});
+        return new ATCommandRequest(ATCommand.SE, to1Byte(sourceEndpoint));
     }
 
     public ATCommandRequest querySE() {
@@ -141,31 +133,27 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setDE(int destinationEndpoint) {
-        return new ATCommandRequest(ATCommand.DE, new int[]{destinationEndpoint});
+        return new ATCommandRequest(ATCommand.DE, to1Byte(destinationEndpoint));
     }
 
     public ATCommandRequest queryDE() {
         return new ATCommandRequest(ATCommand.DE, new int[]{});
     }
 
-    public ATCommandRequest setCL(long clusterIdentifier) {
+    public ATCommandRequest setCI(long clusterIdentifier) {
         return new ATCommandRequest(
-                ATCommand.CL,
-                new int[]{
-                    (int) (clusterIdentifier >> 8),
-                    (int) (clusterIdentifier)});
+                ATCommand.CI,
+                to2Bytes(clusterIdentifier));
     }
 
-    public ATCommandRequest queryCL() {
-        return new ATCommandRequest(ATCommand.CL, new int[]{});
+    public ATCommandRequest queryCI() {
+        return new ATCommandRequest(ATCommand.CI, new int[]{});
     }
 
     public ATCommandRequest setNP(long maximumNFPayloadBytes) {
         return new ATCommandRequest(
                 ATCommand.NP,
-                new int[]{
-                    (int) (maximumNFPayloadBytes >> 8),
-                    (int) (maximumNFPayloadBytes)});
+                to2Bytes(maximumNFPayloadBytes));
     }
 
     public ATCommandRequest queryNP() {
@@ -198,7 +186,7 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setRO(int packetizationTimeout) {
-        return new ATCommandRequest(ATCommand.RO, new int[]{packetizationTimeout});
+        return new ATCommandRequest(ATCommand.RO, to1Byte(packetizationTimeout));
     }
 
     public ATCommandRequest queryRO() {
@@ -206,7 +194,7 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setFT(int flowControlThreshold) {
-        return new ATCommandRequest(ATCommand.FT, new int[]{flowControlThreshold});
+        return new ATCommandRequest(ATCommand.FT, to1Byte(flowControlThreshold));
     }
 
     public ATCommandRequest queryFT() {
@@ -229,32 +217,199 @@ public class ATCommandPayloadFactory {
         return new ATCommandRequest(ATCommand.D6, new int[]{});
     }
 //    /* I/O Commands */
-//    P0("P0"),
-//    P1("P1"),
-//    P2("P2"),
-//    D0("D0"),
-//    D1("D1"),
-//    D2("D2"),
-//    D3("D3"),
-//    D4("D4"),
-//    D5("D5"),
-//    D8("D8"),
-//    D9("D9"),
-//    RP("RP"),
-//    PR("PR"),
-//    M0("M0"),
-//    M1("M1"),
-//    LT("LT"),
-//    CB("CB"),
-//    IR("IR"),
-//    IF("IF"),
-//    RR("RR"),
-//    MT("MT"),
-//    IC("IC"),
-//    IS("IS"),
-//    _1S("1S"),
-    /* Diagnostics */
 
+    public ATCommandRequest setP0Configuration(PWM0_DIO10_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.P0, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryP0Configuration() {
+        return new ATCommandRequest(ATCommand.P0, new int[]{});
+    }
+
+    public ATCommandRequest setP1Configuration(PWM1_DIO11_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.P1, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryP1Configuration() {
+        return new ATCommandRequest(ATCommand.P1, new int[]{});
+    }
+
+    public ATCommandRequest setP2Configuration(DIO12_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.P2, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryP2Configuration() {
+        return new ATCommandRequest(ATCommand.P2, new int[]{});
+    }
+
+    public ATCommandRequest setD0Configuration(AD0_DIO0_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D0, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD0Configuration() {
+        return new ATCommandRequest(ATCommand.D0, new int[]{});
+    }
+
+    public ATCommandRequest setD1Configuration(AD1_DIO1_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D1, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD1Configuration() {
+        return new ATCommandRequest(ATCommand.D1, new int[]{});
+    }
+
+    public ATCommandRequest setD2Configuration(AD2_DIO2_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D2, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD2Configuration() {
+        return new ATCommandRequest(ATCommand.D2, new int[]{});
+    }
+
+    public ATCommandRequest setD3Configuration(AD3_DIO3_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D3, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD3Configuration() {
+        return new ATCommandRequest(ATCommand.D3, new int[]{});
+    }
+
+    public ATCommandRequest setD4Configuration(AD4_DIO4_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D4, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD4Configuration() {
+        return new ATCommandRequest(ATCommand.D4, new int[]{});
+    }
+
+    public ATCommandRequest setD5Configuration(AD5_DIO5_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D5, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD5Configuration() {
+        return new ATCommandRequest(ATCommand.D5, new int[]{});
+    }
+
+    public ATCommandRequest setD8Configuration(DIO8_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D8, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD8Configuration() {
+        return new ATCommandRequest(ATCommand.D8, new int[]{});
+    }
+
+    public ATCommandRequest setD9Configuration(DIO9_Configuration configuration) {
+        return new ATCommandRequest(ATCommand.D9, new int[]{configuration.getValue()});
+    }
+
+    public ATCommandRequest queryD9Configuration() {
+        return new ATCommandRequest(ATCommand.D9, new int[]{});
+    }
+
+    public ATCommandRequest setRP(int rssi_pwm_timer) {
+        return new ATCommandRequest(ATCommand.RP, to1Byte(rssi_pwm_timer));
+    }
+
+    public ATCommandRequest queryRP() {
+        return new ATCommandRequest(ATCommand.RP, new int[]{});
+    }
+
+    public ATCommandRequest setPRConfiguration(Set<Pullup_Resistor> enabledPullupResistors) {
+        int value = 0;
+        for (Pullup_Resistor pullupResistor : enabledPullupResistors) {
+            value = value | (0x1 << pullupResistor.getValue());
+        }
+        return new ATCommandRequest(ATCommand.PR, new int[]{value});
+    }
+
+    public ATCommandRequest queryPRConfiguration() {
+        return new ATCommandRequest(ATCommand.PR, new int[]{});
+    }
+
+    public ATCommandRequest setM0(int pwm0_output_level) {
+        return new ATCommandRequest(ATCommand.M0, to2Bytes(pwm0_output_level));
+    }
+
+    public ATCommandRequest queryM0() {
+        return new ATCommandRequest(ATCommand.M0, new int[]{});
+    }
+
+    public ATCommandRequest setM1(int pwm1_output_level) {
+        return new ATCommandRequest(ATCommand.M1, to2Bytes(pwm1_output_level));
+    }
+
+    public ATCommandRequest queryM1() {
+        return new ATCommandRequest(ATCommand.M1, new int[]{});
+    }
+
+    public ATCommandRequest setLT(int assoc_led_blink_time) {
+        return new ATCommandRequest(ATCommand.LT, to1Byte(assoc_led_blink_time));
+    }
+
+    public ATCommandRequest queryLT() {
+        return new ATCommandRequest(ATCommand.LT, new int[]{});
+    }
+
+    public ATCommandRequest CB() {
+        return new ATCommandRequest(ATCommand.CB, new int[]{});
+    }
+
+    public ATCommandRequest setIR(long io_sample_rate) {
+        return new ATCommandRequest(
+                ATCommand.IR,
+                to2Bytes(io_sample_rate));
+    }
+
+    public ATCommandRequest queryIR() {
+        return new ATCommandRequest(ATCommand.IR, new int[]{});
+    }
+
+    public ATCommandRequest setIF(int sample_from_sleep) {
+        return new ATCommandRequest(ATCommand.IF, to1Byte(sample_from_sleep));
+    }
+
+    public ATCommandRequest queryIF() {
+        return new ATCommandRequest(ATCommand.IF, new int[]{});
+    }
+
+    public ATCommandRequest setRR(int mac_retries) {
+        return new ATCommandRequest(ATCommand.RR, to1Byte(mac_retries));
+    }
+
+    public ATCommandRequest queryRR() {
+        return new ATCommandRequest(ATCommand.RR, new int[]{});
+    }
+
+    public ATCommandRequest setMT(int multiple_transmissions) {
+        return new ATCommandRequest(ATCommand.MT, to1Byte(multiple_transmissions));
+    }
+
+    public ATCommandRequest queryMT() {
+        return new ATCommandRequest(ATCommand.MT, new int[]{});
+    }
+
+    public ATCommandRequest setIC(Set<Digital_IO_Pin> enabledDigitalChangeDetectionIOPins) {
+
+        int value = 0;
+        for (Digital_IO_Pin digitalIOPin : enabledDigitalChangeDetectionIOPins) {
+            value = value | (0x1 << digitalIOPin.getValue());
+        }
+        return new ATCommandRequest(ATCommand.IC, new int[]{value});
+    }
+
+    public ATCommandRequest queryIC() {
+        return new ATCommandRequest(ATCommand.IC, new int[]{});
+    }
+
+    public ATCommandRequest IS() {
+        return new ATCommandRequest(ATCommand.IS, new int[]{});
+    }
+
+    public ATCommandRequest _1S() {
+        return new ATCommandRequest(ATCommand._1S, new int[]{});
+    }
+
+    /* Diagnostics */
     public ATCommandRequest queryVR() {
         return new ATCommandRequest(ATCommand.VR, new int[]{});
     }
@@ -271,14 +426,6 @@ public class ATCommandPayloadFactory {
         return new ATCommandRequest(ATCommand.GD, new int[]{});
     }
 
-    public ATCommandRequest setRP(int value) {
-        return new ATCommandRequest(ATCommand.RP, new int[]{value});
-    }
-
-    public ATCommandRequest queryRP() {
-        return new ATCommandRequest(ATCommand.RP, new int[]{});
-    }
-
     public ATCommandRequest queryTR() {
         return new ATCommandRequest(ATCommand.TR, new int[]{});
     }
@@ -286,14 +433,11 @@ public class ATCommandPayloadFactory {
     public ATCommandRequest queryAI() {
         return new ATCommandRequest(ATCommand.AI, new int[]{});
     }
-    
-    /* AT Command Options */
 
+    /* AT Command Options */
     public ATCommandRequest setCT(long timeout) {
         return new ATCommandRequest(ATCommand.CT,
-                new int[]{
-                    (int) (timeout >> 8),
-                    (int) (timeout)});
+                to2Bytes(timeout));
     }
 
     public ATCommandRequest queryCT() {
@@ -306,9 +450,7 @@ public class ATCommandPayloadFactory {
 
     public ATCommandRequest setGT(long time) {
         return new ATCommandRequest(ATCommand.GT,
-                new int[]{
-                    (int) (time >> 8),
-                    (int) (time)});
+                to2Bytes(time));
     }
 
     //TODO: Check if this is valid
@@ -317,43 +459,254 @@ public class ATCommandPayloadFactory {
     }
 
     public ATCommandRequest setCC(int character) {
-        return new ATCommandRequest(ATCommand.CC, new int[]{character});
+        return new ATCommandRequest(ATCommand.CC, to1Byte(character));
     }
 
     public ATCommandRequest queryCC() {
         return new ATCommandRequest(ATCommand.CC, new int[]{});
     }
-//    /* Node Identification */
-//    NT("NT"),
-//    NI("NI"),
-//    DN("DN"),
-//    ND("ND"),
-//    NO("NO"),
+    /* Node Identification */
+
+    public ATCommandRequest setID(int pan_id) {
+        return new ATCommandRequest(ATCommand.ID, to2Bytes(pan_id));
+    }
+
+    public ATCommandRequest queryID() {
+        return new ATCommandRequest(ATCommand.ID, new int[]{});
+    }
+
+    public ATCommandRequest setNT(int node_discover_timeout) {
+        return new ATCommandRequest(ATCommand.NT, to2Bytes(node_discover_timeout));
+    }
+
+    public ATCommandRequest queryNT() {
+        return new ATCommandRequest(ATCommand.NT, new int[]{});
+    }
+
+    public ATCommandRequest setNI(String nodeIdentifier) {
+        int[] bytes = new int[nodeIdentifier.length()];
+        for (int i = 0; i < nodeIdentifier.toCharArray().length; i++) {
+            bytes[i] = nodeIdentifier.toCharArray()[i];
+        }
+        return new ATCommandRequest(ATCommand.NI, bytes);
+    }
+
+    public ATCommandRequest queryNI() {
+        return new ATCommandRequest(ATCommand.NI, new int[]{});
+    }
+
+    public ATCommandRequest DN(String nodeIdentifier) {
+        int[] bytes = new int[nodeIdentifier.length()];
+        for (int i = 0; i < nodeIdentifier.toCharArray().length; i++) {
+            bytes[i] = nodeIdentifier.toCharArray()[i];
+        }
+        return new ATCommandRequest(ATCommand.DN, bytes);
+    }
+
+    public ATCommandRequest ND() {
+        return new ATCommandRequest(ATCommand.ND, new int[]{});
+    }
+
+    public ATCommandRequest setNO(Network_Discovery_Option network_Discovery_Options) {
+        return new ATCommandRequest(ATCommand.NO, new int[]{network_Discovery_Options.getValue()});
+    }
+
+    public ATCommandRequest queryNO() {
+        return new ATCommandRequest(ATCommand.NO, new int[]{});
+    }
 //    /* Sleep Commands */
-//    SM("SM"),
-//    SO("SO"),
-//    ST("ST"),
-//    SP("SP"),
-//    MS("MS"),
-//    SQ("SQ"),
-//    SS("SS"),
-//    OS("OS"),
-//    OW("OW"),
-//    WH("WH"),
-//    /* Encryption and Security */
-//    EE("EE"),
-//    KY("KY"),
-//    /* Networking */
-//    CH("CH"),
-//    ID("ID"),
-//    CE("CE"),
-//    /* RF Interfacing */
-//    PL("PL"),
-//    CA("CA"),
-//    DB("DB"),
+
+    public ATCommandRequest setSM(Sleep_Mode sleepMode) {
+        return new ATCommandRequest(ATCommand.SM, new int[]{sleepMode.getValue()});
+    }
+
+    public ATCommandRequest querySM() {
+        return new ATCommandRequest(ATCommand.SM, new int[]{});
+    }
+
+    public ATCommandRequest setSO(Sleep_Option sleepOptions) {
+        return new ATCommandRequest(ATCommand.SO, new int[]{sleepOptions.getValue()});
+    }
+
+    public ATCommandRequest querySO() {
+        return new ATCommandRequest(ATCommand.SO, new int[]{});
+    }
+
+    public ATCommandRequest setST(long value) {
+        return new ATCommandRequest(ATCommand.ST, to3Bytes(value));
+    }
+
+    public ATCommandRequest queryST() {
+        return new ATCommandRequest(ATCommand.ST, new int[]{});
+    }
+
+    public ATCommandRequest setSP(long value) {
+        return new ATCommandRequest(ATCommand.SP, to3Bytes(value));
+    }
+
+    public ATCommandRequest querySP() {
+        return new ATCommandRequest(ATCommand.SP, new int[]{});
+    }
+
+    public ATCommandRequest queryMS() {
+        return new ATCommandRequest(ATCommand.MS, new int[]{});
+    }
+
+    public ATCommandRequest querySQ() {
+        return new ATCommandRequest(ATCommand.SQ, new int[]{});
+    }
+
+    public ATCommandRequest querySS() {
+        return new ATCommandRequest(ATCommand.SS, new int[]{});
+    }
+
+    public ATCommandRequest queryOS() {
+        return new ATCommandRequest(ATCommand.OS, new int[]{});
+    }
+
+    public ATCommandRequest queryOW() {
+        return new ATCommandRequest(ATCommand.OW, new int[]{});
+    }
+
+    public ATCommandRequest queryWH() {
+        return new ATCommandRequest(ATCommand.WH, new int[]{});
+    }
+
+    public ATCommandRequest setWH(long value) {
+        return new ATCommandRequest(ATCommand.WH, to2Bytes(value));
+    }
+
+    /* Encryption and Security */
+    public ATCommandRequest setEE(Encryption_Enable encryption_Enable) {
+        return new ATCommandRequest(ATCommand.EE, new int[]{encryption_Enable.getValue()});
+    }
+
+    public ATCommandRequest queryEE() {
+        return new ATCommandRequest(ATCommand.EE, new int[]{});
+    }
+
+    public ATCommandRequest setKY(int[] encryption_key) {
+        return new ATCommandRequest(ATCommand.KY, encryption_key);
+    }
+
+    public ATCommandRequest queryKY() {
+        return new ATCommandRequest(ATCommand.KY, new int[]{});
+    }
+
+    /* Networking */
+    public ATCommandRequest setCH(int channel) {
+        return new ATCommandRequest(ATCommand.CH, to1Byte(channel));
+    }
+
+    public ATCommandRequest queryCH() {
+        return new ATCommandRequest(ATCommand.CH, new int[]{});
+    }
+
+    public ATCommandRequest setCE(Routing_Type routing_Type) {
+        return new ATCommandRequest(ATCommand.CE, new int[]{routing_Type.getValue()});
+    }
+
+    public ATCommandRequest queryCE() {
+        return new ATCommandRequest(ATCommand.CE, new int[]{});
+    }
+
+    /* RF Interfacing */
+    public ATCommandRequest setPL(Power_Level power_Level) {
+        return new ATCommandRequest(ATCommand.PL, new int[]{power_Level.getValue()});
+    }
+
+    public ATCommandRequest queryPL() {
+        return new ATCommandRequest(ATCommand.PL, new int[]{});
+    }
+
+    public ATCommandRequest setCA(int cca_threshold) {
+        return new ATCommandRequest(ATCommand.CA, to1Byte(cca_threshold));
+    }
+
+    public ATCommandRequest queryCA() {
+        return new ATCommandRequest(ATCommand.CA, new int[]{});
+    }
+
+    public ATCommandRequest clearDB() {
+        return new ATCommandRequest(ATCommand.DB, new int[]{0});
+    }
+
+    public ATCommandRequest queryDB() {
+        return new ATCommandRequest(ATCommand.DB, new int[]{});
+    }
+
 //    /* DigiMesh */
-//    NH("NH"),
-//    NN("NN"),
-//    NQ("NQ"),
-//    MR("MR");
+    public ATCommandRequest setNH(int value) {
+        return new ATCommandRequest(ATCommand.NH, to1Byte(value));
+    }
+
+    public ATCommandRequest queryNH() {
+        return new ATCommandRequest(ATCommand.NH, new int[]{});
+    }
+
+    public ATCommandRequest setNN(int value) {
+        return new ATCommandRequest(ATCommand.NN, to1Byte(value));
+    }
+
+    public ATCommandRequest queryNN() {
+        return new ATCommandRequest(ATCommand.NN, new int[]{});
+    }
+
+    public ATCommandRequest setNQ(int value) {
+        return new ATCommandRequest(ATCommand.NQ, to1Byte(value));
+    }
+
+    public ATCommandRequest queryNQ() {
+        return new ATCommandRequest(ATCommand.NQ, new int[]{});
+    }
+
+    public ATCommandRequest setMR(int value) {
+        return new ATCommandRequest(ATCommand.MR, to1Byte(value));
+    }
+
+    public ATCommandRequest queryMR() {
+        return new ATCommandRequest(ATCommand.MR, new int[]{});
+    }
+
+    private int[] to1Byte(int i) {
+        return to1Byte((long) i);
+    }
+
+    private int[] to2Bytes(int i) {
+        return to2Bytes((long) i);
+    }
+
+    private int[] to3Bytes(int i) {
+        return to3Bytes((long) i);
+    }
+
+    private int[] to4Bytes(int i) {
+        return to4Bytes((long) i);
+    }
+
+    private int[] to1Byte(long l) {
+        return new int[]{
+                    (int) (l)};
+    }
+
+    private int[] to2Bytes(long l) {
+        return new int[]{
+                    (int) (l >> 8),
+                    (int) (l)};
+    }
+
+    private int[] to3Bytes(long l) {
+        return new int[]{
+                    (int) (l >> 16),
+                    (int) (l >> 8),
+                    (int) (l)};
+    }
+
+    private int[] to4Bytes(long l) {
+        return new int[]{
+                    (int) (l >> 24),
+                    (int) (l >> 16),
+                    (int) (l >> 8),
+                    (int) (l)};
+    }
 }
