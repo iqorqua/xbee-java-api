@@ -4,8 +4,12 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import com.google.code.xbeejavaapi.api.TransmitStatus.DeliveryStatus;
-import com.google.code.xbeejavaapi.api.TransmitStatus.DiscoveryStatus;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -21,10 +25,18 @@ public class ATCommandResponseFactory {
      * Frame data corresponds to bytes 4-n, see XBee®/XBee-PRO® DigiMeshTM 2.4 RF Modules Manual.
      * @param data Frame bytes 4-n (excludes checksum) received from the module.
      */
-    public TransmitStatus parse(int[] data) {
-        int retryCount = data[4];
-        DeliveryStatus deliveryStatus = DeliveryStatus.get(data[5]);
-        DiscoveryStatus discoveryStatus = TransmitStatus.DiscoveryStatus.get(data[6]);
-        return new TransmitStatus(retryCount, deliveryStatus, discoveryStatus);
+    public ATCommandResponse parse(int[] data) {
+        try {
+            String commandName = new String(new char[]{(char) data[2], (char) data[3]});
+            Constructor constructor =
+                    Class.forName("com.google.code.xbeejavaapi.api.ATCommandResponse$" + commandName).
+                    getConstructor(new Class[]{(new int[0]).getClass()});
+            ATCommandResponse atCommandResponse = (ATCommandResponse) constructor.newInstance(data);
+            return atCommandResponse;
+
+        } catch (Exception ex) {
+            logger.error(ex);
+            return null;
+        }
     }
 }

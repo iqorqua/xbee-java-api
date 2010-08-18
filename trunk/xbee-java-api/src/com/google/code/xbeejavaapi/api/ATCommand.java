@@ -4,9 +4,8 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -29,7 +28,7 @@ public enum ATCommand {
     HP("HP"),
     SE("SE"),
     DE("DE"),
-    CL("CL"),
+    CI("CI"),
     NP("NP"),
     /* Serial Interfacing (I/O) */
     AP("AP"),
@@ -111,12 +110,24 @@ public enum ATCommand {
     NQ("NQ"),
     MR("MR");
     private String command;
+    private static final Map<String, ATCommand> commands = new HashMap<String, ATCommand>();
+
+    static {
+        for (int i = 0; i < values().length; i++) {
+            ATCommand atCommand = values()[i];
+            commands.put(atCommand.getCommandString(), atCommand);
+        }
+    }
 
     private ATCommand(String command) {
         this.command = command;
     }
 
-    public String getCommand() {
+    public String getCommandString() {
         return command;
+    }
+
+    public static ATCommand getCommand(String name) {
+        return commands.get(name);
     }
 }

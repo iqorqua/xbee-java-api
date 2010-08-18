@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
-public enum APIFrame {
+public enum APIFrameType {
 
     ModemStatus(0x8A),
     ATCommand(0x08),
@@ -25,9 +25,9 @@ public enum APIFrame {
     ReceivePacket(0x90),
     ExplicitRxIndicator(0x91);
     private int value;
-    private static Map<Integer, APIFrame> values = new HashMap<Integer, APIFrame>();
+    private static final Map<Integer, APIFrameType> values = new HashMap<Integer, APIFrameType>();
 
-    private APIFrame(int value) {
+    private APIFrameType(int value) {
         this.value = value;
     }
 
@@ -37,12 +37,12 @@ public enum APIFrame {
 
     static {
         for (int i = 0; i < values().length; i++) {
-            APIFrame apiFrame = values()[i];
+            APIFrameType apiFrame = values()[i];
             values.put(apiFrame.value, apiFrame);
         }
     }
 
-    public static APIFrame get(int value) {
+    public static APIFrameType get(int value) {
         return values.get(value);
     }
 }
