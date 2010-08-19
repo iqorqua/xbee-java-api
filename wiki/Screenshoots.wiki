@@ -1,5 +1,5 @@
 #summary Screenshoots
-#labels Screenshoots
+#labels Screenshoots,Featured
 
 = Screenshoots =
 
