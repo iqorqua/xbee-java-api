@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.google.code.xbeejavaapi;
 
 import com.google.code.xbeejavaapi.api.ATCommandRequest;
@@ -308,6 +307,19 @@ public interface XBee {
 
     void softwareReset() throws XBeeOperationFailedException;
 
-    void write() throws XBeeOperationFailedException;
+    public void setNetworkHops(long networkHops) throws XBeeOperationFailedException;
 
+    public long getNetworkHops() throws XBeeOperationFailedException;
+
+    public void setNetworkDelaySlots(long networkDelaySlots) throws XBeeOperationFailedException;
+
+    public long getNetworkDelaySlots() throws XBeeOperationFailedException;
+
+    public void setNetworkRouteRequests(long networkRouteRequests) throws XBeeOperationFailedException;
+
+    public long getNetworkRouteRequests() throws XBeeOperationFailedException;
+
+    public void setMeshNetworkRetries(long meshNetworkRetries) throws XBeeOperationFailedException;
+
+    public long getMeshNetworkRetries() throws XBeeOperationFailedException;
 }
