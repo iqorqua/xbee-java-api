@@ -29,7 +29,7 @@ public class XBeeFactory {
         this.serialPortName = serialPortName;
     }
 
-    public XBee newXBee() throws XBeeOperationFailedException {
+    public LocalXBee newXBee() throws XBeeOperationFailedException {
         {
             logger.debug("Creating XBee at port " + serialPortName);
             try {
@@ -43,7 +43,7 @@ public class XBeeFactory {
                     serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
                     InputStream in = serialPort.getInputStream();
                     OutputStream out = serialPort.getOutputStream();
-                    return new XBee(in, out) {
+                    return new LocalXBee(in, out) {
 
                         @Override
                         public void disconnect() {

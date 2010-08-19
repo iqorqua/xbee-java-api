@@ -543,4 +543,20 @@ public class Constants {
             return value;
         }
     }
+
+    public static enum Device_Type implements ValueBasedEnum {
+
+        COORDINATOR(0),
+        ROUTER(1),
+        END_DEVICE(2),;
+        private int value;
+
+        private Device_Type(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
 }

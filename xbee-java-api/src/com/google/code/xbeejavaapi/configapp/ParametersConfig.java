@@ -4,16 +4,13 @@
  */
 
 /*
- * ValuesDisplay.java
+ * ParametersConfig.java
  *
  * Created on Aug 17, 2010, 11:10:59 AM
  */
-package com.google.code.xbeejavaapi.examples;
+package com.google.code.xbeejavaapi.configapp;
 
 import com.google.code.xbeejavaapi.XBee;
-import com.google.code.xbeejavaapi.XBeeFactory;
-import com.google.code.xbeejavaapi.api.Constants;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,27 +26,26 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
  *
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
-public class ValuesDisplay extends javax.swing.JPanel {
+public class ParametersConfig extends javax.swing.JPanel {
 
-    private static final Logger logger = Logger.getLogger(ValuesDisplay.class);
+    private static final Logger logger = Logger.getLogger(ParametersConfig.class);
     private DefaultTableModel tableModel = new DefaultTableModel(new String[]{"Parameter", "Value"}, 0);
     private XBee xbee;
     private ArrayList<String> propertyNames;
     private JFrame frame;
 
-    /** Creates new form ValuesDisplay */
-    public ValuesDisplay(final XBee xbee, final JFrame frame) {
+    /** Creates new form ParametersConfig */
+    public ParametersConfig(final XBee xbee, final JFrame frame) {
         initComponents();
         this.frame = frame;
         this.xbee = xbee;
@@ -57,6 +53,7 @@ public class ValuesDisplay extends javax.swing.JPanel {
         setterPanel.setMinimumSize(new Dimension(100, 100));
         jTable1.setModel(tableModel);
         update();
+        jTable1.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
             public void valueChanged(ListSelectionEvent e) {
@@ -117,6 +114,27 @@ public class ValuesDisplay extends javax.swing.JPanel {
                                                 method.invoke(xbee, new Object[]{enumElement});
                                             } catch (Exception ex) {
                                                 logger.error(ex);
+                                                ex.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                } else if (parameter.equals(String.class)) {
+                                    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+                                    JLabel label = new JLabel("New value: ");
+                                    final JTextField jTextField = new JTextField();
+                                    JButton button = new JButton("Set");
+                                    panel.add(label);
+                                    panel.add(jTextField);
+                                    jTextField.setColumns(20);
+                                    panel.add(button);
+                                    button.addActionListener(new ActionListener() {
+
+                                        public void actionPerformed(ActionEvent e) {
+                                            try {
+                                                method.invoke(xbee, new Object[]{jTextField.getText()});
+                                            } catch (Exception ex) {
+                                                logger.error(ex);
+                                                ex.printStackTrace();
                                             }
                                         }
                                     });
@@ -162,6 +180,7 @@ public class ValuesDisplay extends javax.swing.JPanel {
                     propertyNames.add(method.getName().replace("get", ""));
                 } catch (Exception ex) {
                     logger.error(ex);
+                    ex.printStackTrace();
                 }
             }
         }
@@ -246,18 +265,4 @@ public class ValuesDisplay extends javax.swing.JPanel {
     private javax.swing.JTable jTable1;
     private javax.swing.JPanel setterPanel;
     // End of variables declaration//GEN-END:variables
-
-    public static void main(String[] args) throws XBeeOperationFailedException {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ALL);
-
-        XBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
-
-        JFrame jFrame = new JFrame();
-        ValuesDisplay valuesDisplay = new ValuesDisplay(xbee, jFrame);
-        jFrame.getContentPane().add(valuesDisplay);
-        jFrame.pack();
-        jFrame.setVisible(true);
-        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
 }

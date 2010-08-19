@@ -96,6 +96,40 @@ public abstract class ATCommandResponse extends FrameWithID {
         }
     }
 
+    public static abstract class XBeeAddressATCommandResponse extends ATCommandResponse {
+
+        private XBeeAddress address;
+
+        public XBeeAddressATCommandResponse(int[] data) {
+            super(data);
+
+            long highBytes = data[5];
+
+            for (int i = 6; i <= 8; i++) {
+                highBytes = highBytes << 8;
+                highBytes = highBytes | data[i];
+            }
+
+            long lowBytes = data[9];
+
+            for (int i = 10; i <= 12; i++) {
+                lowBytes = lowBytes << 8;
+                lowBytes = lowBytes | data[i];
+            }
+
+            address = new XBeeAddress(highBytes, lowBytes);
+        }
+
+        public XBeeAddress getAddress() {
+            return address;
+        }
+
+        @Override
+        public String toString() {
+            return this.getClass().getSimpleName() + " with address = " + address;
+        }
+    }
+
     public static abstract class TextATCommandResponse extends ATCommandResponse {
 
         private String text;
@@ -630,13 +664,119 @@ public abstract class ATCommandResponse extends FrameWithID {
         }
     }
 
-    public static class DN extends TextATCommandResponse {
+    public static class DN extends XBeeAddressATCommandResponse {
 
         public DN(int[] data) {
             super(data);
         }
     }
-    // ND (Node Discover)
+
+    //TODO: Complete:
+    public static class ND extends ATCommandResponse {
+
+        XBeeAddress address;
+        String nodeIdentifier;
+        long parentNetworkAddress;
+        Device_Type deviceType;
+        long status;
+        long profileId;
+        long manufacturerId;
+
+        public ND(int[] data) {
+            super(data);
+
+            int i = 7;
+            long sh = data[i++];
+
+            for (int j = 0; j < 3; j++, i++) {
+                sh = sh << 8;
+                sh = sh | data[i];
+            }
+
+            long sl = data[i++];
+
+            for (int j = 0; j < 3; j++, i++) {
+                sl = sl << 8;
+                sl = sl | data[i];
+            }
+
+            address = new XBeeAddress(sh, sl);
+
+            nodeIdentifier = "";
+
+            for (;; i++) {
+                if (data[i] == 0) {
+                    break;
+                }
+                nodeIdentifier += (char) data[i];
+            }
+
+            i++;
+
+            parentNetworkAddress = (data[i] << 8) | data[i + 1];
+
+            i += 2;
+
+            for (int j = 0; j < Device_Type.values().length; j++) {
+                Device_Type device_Type = Device_Type.values()[j];
+                if (device_Type.getValue() == data[i]) {
+                    deviceType = device_Type;
+                }
+            }
+
+            i++;
+
+            status = data[i];
+
+            i++;
+
+            profileId = (data[i] << 8) | data[i + 1];
+
+            i += 2;
+
+            manufacturerId = (data[i] << 8) | data[i + 1];
+        }
+
+        public XBeeAddress getAddress() {
+            return address;
+        }
+
+        public Device_Type getDeviceType() {
+            return deviceType;
+        }
+
+        public long getManufacturerId() {
+            return manufacturerId;
+        }
+
+        public String getNodeIdentifier() {
+            return nodeIdentifier;
+        }
+
+        public long getParentNetworkAddress() {
+            return parentNetworkAddress;
+        }
+
+        public long getProfileId() {
+            return profileId;
+        }
+
+        public long getStatus() {
+            return status;
+        }
+
+        @Override
+        public String toString() {
+            return "Node" + "\n"
+                    + "address=" + address + "\n"
+                    + "nodeIdentifier=" + nodeIdentifier + "\n"
+                    + "parentNetworkAddress=" + "0x" + Long.toHexString(parentNetworkAddress).toUpperCase() + "\n"
+                    + "deviceType=" + deviceType + "\n"
+                    + "status=" + "0x" + Long.toHexString(status).toUpperCase() + "\n"
+                    + "profileId=" + "0x" + Long.toHexString(profileId).toUpperCase() + "\n"
+                    + "manufacturerId=" + "0x" + Long.toHexString(manufacturerId).toUpperCase();
+        }
+    }
 
     public static class NO extends BitFieldATCommandResponse<Network_Discovery_Option> {
 
@@ -646,7 +786,7 @@ public abstract class ATCommandResponse extends FrameWithID {
     }
     /* Sleep Commands */
 
-    public static class SM extends EnumerationATCommandResponse<Sleep_Option> {
+    public static class SM extends EnumerationATCommandResponse<Sleep_Mode> {
 
         public SM(int[] data) {
             super(data, Sleep_Mode.class);
