@@ -6,7 +6,6 @@ package com.google.code.xbeejavaapi.configapp;
 
 import com.google.code.xbeejavaapi.LocalXBee;
 import com.google.code.xbeejavaapi.XBeeFactory;
-import com.google.code.xbeejavaapi.examples.NodeDiscovery;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;

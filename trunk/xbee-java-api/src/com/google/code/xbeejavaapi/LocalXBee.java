@@ -1037,6 +1037,7 @@ public class LocalXBee implements XBee {
     }
     /* DigiMesh */
 
+    @Deprecated
     public int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
