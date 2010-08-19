@@ -1037,8 +1037,7 @@ public class LocalXBee implements XBee {
     }
     /* DigiMesh */
 
-    @Deprecated
-    public int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
+    protected int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
         int frameID = generateFrameID();
@@ -1212,7 +1211,7 @@ public class LocalXBee implements XBee {
                             locks.get(frameWithID.getId()).notifyAll();
                         }
                     }
-                    System.out.println("API Frame: " + frame);
+                    logger.debug("API Frame: " + frame);
                 }
             } catch (XBeeOperationFailedException ex) {
                 logger.error(ex);
