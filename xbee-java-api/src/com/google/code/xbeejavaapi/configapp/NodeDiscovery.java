@@ -8,7 +8,7 @@
  *
  * Created on Aug 18, 2010, 11:46:19 PM
  */
-package com.google.code.xbeejavaapi.examples;
+package com.google.code.xbeejavaapi.configapp;
 
 import com.google.code.xbeejavaapi.LocalXBee;
 import com.google.code.xbeejavaapi.api.DiscoveredNode;
