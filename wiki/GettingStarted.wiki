@@ -1,0 +1,11 @@
+#summary Getting Started
+#labels Featured
+
+= Getting Started =
+
+To use the configuration application:
+
+  * Download xbee-java-api X.X.jar
+  * Get log4j ([http://logging.apache.org/log4j/1.2/])
+  * Install RXTX ([http://users.frii.com/jarvi/rxtx/download.html])
+  * Run with "java -jar xbee-java-api X.X.jar"
