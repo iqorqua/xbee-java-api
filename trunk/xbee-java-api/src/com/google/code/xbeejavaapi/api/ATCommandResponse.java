@@ -4,7 +4,6 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import com.sun.xml.internal.bind.v2.runtime.AssociationMap;
 import java.util.Set;
 import java.lang.reflect.Method;
 import java.util.HashMap;

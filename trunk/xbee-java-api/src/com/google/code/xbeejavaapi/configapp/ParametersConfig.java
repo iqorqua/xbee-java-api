@@ -166,15 +166,16 @@ public class ParametersConfig extends javax.swing.JPanel {
                         value = "0x" + Long.toHexString((Long) value).toUpperCase();
                     } else if (value instanceof Collection) {
                         Collection c = (Collection) value;
-                        value = "[ ";
+                        String s = "[ ";
                         Iterator iter = c.iterator();
                         if (iter.hasNext()) {
-                            value += "" + iter.next();
+                            s += "" + iter.next().toString();
                         }
                         while (iter.hasNext()) {
-                            value += ", " + iter.next();
+                            s += ", " + iter.next().toString();
                         }
-                        value += " ]";
+                        s += " ]";
+                        value = s;
                     }
                     tableModel.addRow(new Object[]{method.getName().replace("get", ""), value});
                     propertyNames.add(method.getName().replace("get", ""));
