@@ -1144,7 +1144,7 @@ public class LocalXBee implements XBee {
         }
 
         public <T extends FrameWithID> T getResponse(int id) {
-            return getResponse(id, 0);
+            return (T) getResponse(id, 0);
         }
 
         public <T extends FrameWithID> T getResponse(int id, long timeout) {
