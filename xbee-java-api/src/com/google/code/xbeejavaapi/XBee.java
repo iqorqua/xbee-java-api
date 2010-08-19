@@ -198,8 +198,6 @@ public interface XBee {
 
     Set<DiscoveredNode> searchNodes() throws XBeeOperationFailedException;
 
-    int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException;
-
     void setAD0DIO0Configuration(AD0_DIO0_Configuration config) throws XBeeOperationFailedException;
 
     void setAD1DIO1Configuration(AD1_DIO1_Configuration config) throws XBeeOperationFailedException;

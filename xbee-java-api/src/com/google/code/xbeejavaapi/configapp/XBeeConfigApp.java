@@ -8,6 +8,8 @@ import com.google.code.xbeejavaapi.LocalXBee;
 import com.google.code.xbeejavaapi.XBeeFactory;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JTabbedPane;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -25,17 +27,10 @@ public class XBeeConfigApp {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.ALL);
 
-        LocalXBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
+        JTabbedPane localNodesPane = new JTabbedPane();
+        MainFrame jFrame = new MainFrame(localNodesPane);
 
-        JFrame jFrame = new JFrame();
-        JTabbedPane jTabbedPane = new JTabbedPane();
-
-        ParametersConfig valuesDisplay = new ParametersConfig(xbee, jFrame);
-        jTabbedPane.addTab("Parameters", valuesDisplay);
-        NodeDiscovery nodeDiscovery = new NodeDiscovery(xbee, jFrame, jTabbedPane);
-        jTabbedPane.addTab("Node Discovery", nodeDiscovery);
-
-        jFrame.getContentPane().add(jTabbedPane);
+        jFrame.getMainPanel().add(localNodesPane);
         jFrame.pack();
         jFrame.setVisible(true);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

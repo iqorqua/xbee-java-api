@@ -155,16 +155,27 @@ public class NodeDiscovery extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        try {
-            discoveredNodes = new ArrayList<DiscoveredNode>(xbee.searchNodes());
-            ArrayList<String> nodes = new ArrayList<String>();
-            for (DiscoveredNode discoveredNode : discoveredNodes) {
-                nodes.add(discoveredNode.getNodeIdentifier());
+        new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    jButton2.setEnabled(false);
+                    jButton2.setText("Searching...");
+                    discoveredNodes = new ArrayList<DiscoveredNode>(xbee.searchNodes());
+                    ArrayList<String> nodes = new ArrayList<String>();
+                    for (DiscoveredNode discoveredNode : discoveredNodes) {
+                        nodes.add(discoveredNode.getNodeIdentifier());
+                    }
+                    nodesList.setListData(nodes.toArray());
+                } catch (XBeeOperationFailedException ex) {
+                    logger.error(ex);
+                } finally {
+                    jButton2.setEnabled(true);
+                    jButton2.setText("Search");
+                }
             }
-            nodesList.setListData(nodes.toArray());
-        } catch (XBeeOperationFailedException ex) {
-            logger.error(ex);
-        }
+        }.start();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void nodesListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_nodesListValueChanged
@@ -180,11 +191,9 @@ public class NodeDiscovery extends javax.swing.JPanel {
         if (nodesList.getSelectedIndex() != -1) {
             DiscoveredNode discoveredNode = discoveredNodes.get(nodesList.getSelectedIndex());
             ParametersConfig parametersConfig = new ParametersConfig(discoveredNode.getXbee(), frame);
-            try {
-                jTabbedPane.addTab(discoveredNode.getNodeIdentifier() + " parameters (through " + xbee.getNodeIdentifier() + ")", parametersConfig);
-            } catch (XBeeOperationFailedException ex) {
-                logger.error(ex);
-            }
+            JTabbedPane remoteNodeTab = new JTabbedPane();
+            remoteNodeTab.addTab("Parameters", parametersConfig);
+            jTabbedPane.addTab(discoveredNode.getNodeIdentifier() + " (remote)", remoteNodeTab);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
     // Variables declaration - do not modify//GEN-BEGIN:variables

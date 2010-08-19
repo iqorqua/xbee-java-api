@@ -23,21 +23,23 @@ public class SimpleExample1 {
 
     public static void main(String[] args) throws XBeeOperationFailedException {
         BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ALL);
+        Logger.getRootLogger().setLevel(Level.ERROR);
 
         LocalXBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
 
-        xbee.sendATCommand(new ATCommandPayloadFactory().setD2(AD2_DIO2_Configuration.DIGITAL_OUTPUT_DEFAULT_LOW));
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException ex) {
-            java.util.logging.Logger.getLogger(SimpleExample1.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        xbee.sendATCommand(new ATCommandPayloadFactory().setD2(AD2_DIO2_Configuration.DIGITAL_OUTPUT_DEFAULT_HIGH));
+        String oldNodeIdentifier = xbee.getNodeIdentifier();
 
-        System.out.println("Quering D2");
+        System.out.println("Old node identifier is \"" + oldNodeIdentifier + "\"");
 
-        xbee.sendATCommand(new ATCommandPayloadFactory().queryD2());
+        xbee.setNodeIdentifier("NODE1");
+
+        System.out.println("Setting new node identifier");
+
+        System.out.println("Current node identifier is \"" + xbee.getNodeIdentifier() + "\"");
+
+        xbee.setNodeIdentifier(oldNodeIdentifier);
+
+        System.out.println("Reverted to old node identifier");
 
         xbee.disconnect();
     }
