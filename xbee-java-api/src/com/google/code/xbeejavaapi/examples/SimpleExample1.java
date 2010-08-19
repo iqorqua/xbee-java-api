@@ -4,10 +4,8 @@
  */
 package com.google.code.xbeejavaapi.examples;
 
-import com.google.code.xbeejavaapi.api.ATCommandPayloadFactory;
-import com.google.code.xbeejavaapi.LocalXBee;
+import com.google.code.xbeejavaapi.XBee;
 import com.google.code.xbeejavaapi.XBeeFactory;
-import com.google.code.xbeejavaapi.api.Constants.AD2_DIO2_Configuration;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -25,21 +23,9 @@ public class SimpleExample1 {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.ERROR);
 
-        LocalXBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
+        XBee xbee = new XBeeFactory("/dev/ttyUSB0").newXBee();
 
-        String oldNodeIdentifier = xbee.getNodeIdentifier();
-
-        System.out.println("Old node identifier is \"" + oldNodeIdentifier + "\"");
-
-        xbee.setNodeIdentifier("NODE1");
-
-        System.out.println("Setting new node identifier");
-
-        System.out.println("Current node identifier is \"" + xbee.getNodeIdentifier() + "\"");
-
-        xbee.setNodeIdentifier(oldNodeIdentifier);
-
-        System.out.println("Reverted to old node identifier");
+        System.out.println("Node identifier is \"" + xbee.getNodeIdentifier() + "\"");
 
         xbee.disconnect();
     }

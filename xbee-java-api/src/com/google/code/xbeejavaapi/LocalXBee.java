@@ -1037,6 +1037,66 @@ public class LocalXBee implements XBee {
     }
     /* DigiMesh */
 
+    public void setNetworkHops(long networkHops) throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().setNH(networkHops));
+        ATCommandResponse.NH resp1 = listener.getResponse(frameID);
+    }
+
+    public long getNetworkHops() throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().queryNH());
+        ATCommandResponse.NH resp1 = listener.getResponse(frameID);
+
+        return resp1.getValue();
+    }
+
+    public void setNetworkDelaySlots(long networkDelaySlots) throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().setNN(networkDelaySlots));
+        ATCommandResponse.NN resp1 = listener.getResponse(frameID);
+    }
+
+    public long getNetworkDelaySlots() throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().queryNN());
+        ATCommandResponse.NN resp1 = listener.getResponse(frameID);
+
+        return resp1.getValue();
+    }
+
+    public void setNetworkRouteRequests(long networkRouteRequests) throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().setNQ(networkRouteRequests));
+        ATCommandResponse.NQ resp1 = listener.getResponse(frameID);
+    }
+
+    public long getNetworkRouteRequests() throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().queryNQ());
+        ATCommandResponse.NQ resp1 = listener.getResponse(frameID);
+
+        return resp1.getValue();
+    }
+
+    public void setMeshNetworkRetries(long meshNetworkRetries) throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().setMR(meshNetworkRetries));
+        ATCommandResponse.MR resp1 = listener.getResponse(frameID);
+    }
+
+    public long getMeshNetworkRetries() throws XBeeOperationFailedException {
+        int frameID;
+        frameID = sendATCommand(new ATCommandPayloadFactory().queryMR());
+        ATCommandResponse.MR resp1 = listener.getResponse(frameID);
+
+        return resp1.getValue();
+    }
+
+    public RemoteXBee openRemoteXBee(XBeeAddress address) throws XBeeOperationFailedException {
+        return new RemoteXBee(address);
+    }
+
     protected int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
