@@ -11,21 +11,30 @@
 package com.google.code.xbeejavaapi.configapp;
 
 import com.google.code.xbeejavaapi.XBee;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
@@ -51,9 +60,14 @@ public class ParametersConfig extends javax.swing.JPanel {
         this.frame = frame;
         this.xbee = xbee;
         setterPanel.setLayout(new BoxLayout(setterPanel, BoxLayout.LINE_AXIS));
-        setterPanel.setMinimumSize(new Dimension(100, 100));
+//        setterPanel.setMinimumSize(new Dimension(100, 100));
+        setterPanel.setPreferredSize(new Dimension(100, 50));
         jTable1.setModel(tableModel);
         update();
+
+        jSplitPane1.setDividerLocation(0.1);
+        jSplitPane1.resetToPreferredSizes();
+
         jTable1.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 
@@ -142,12 +156,90 @@ public class ParametersConfig extends javax.swing.JPanel {
                                             }
                                         }
                                     });
+                                } else if (parameter.isAssignableFrom(Set.class)) {
+                                    try {
+                                        panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
+                                        Class collectionType = null;
+                                        Type[] genericParameterTypes = method.getGenericParameterTypes();
+                                        for (Type genericParameterType : genericParameterTypes) {
+                                            if (genericParameterType instanceof ParameterizedType) {
+                                                ParameterizedType aType = (ParameterizedType) genericParameterType;
+                                                Type[] parameterArgTypes = aType.getActualTypeArguments();
+                                                for (Type parameterArgType : parameterArgTypes) {
+                                                    Class parameterArgClass = (Class) parameterArgType;
+                                                    collectionType = parameterArgClass;
+                                                }
+                                            }
+                                        }
+
+                                        if (collectionType.getSuperclass() != null && collectionType.getSuperclass().equals(Enum.class)) {
+                                            Object[] values = (Object[]) collectionType.getMethod("values", new Class[]{}).invoke(null, new Object[]{});
+
+                                            final Map<JCheckBox, Object> jCheckBoxes = new HashMap<JCheckBox, Object>();
+
+                                            Collection selected = new ArrayList();
+
+                                            try {
+                                                selected.addAll((Collection) XBee.class.getMethod(method.getName().replaceFirst("set", "get"), new Class[0]).invoke(xbee, new Object[0]));
+                                            } catch (Exception ex) {
+                                                logger.error(ex);
+                                            }
+
+                                            for (Object object : values) {
+                                                JCheckBox checkBox = new JCheckBox(object.toString());
+                                                jCheckBoxes.put(checkBox, object);
+                                                checkBox.setAlignmentX(LEFT_ALIGNMENT);
+                                                panel.add(checkBox);
+
+                                                if (selected.contains(object)) {
+                                                    checkBox.setSelected(true);
+                                                }
+                                            }
+
+                                            JButton button = new JButton("Set");
+                                            button.setAlignmentX(Component.LEFT_ALIGNMENT);
+                                            panel.add(button);
+                                            button.addActionListener(new ActionListener() {
+
+                                                public void actionPerformed(ActionEvent e) {
+                                                    try {
+                                                        Collection c = new HashSet();
+
+                                                        for (Map.Entry<JCheckBox, Object> entry : jCheckBoxes.entrySet()) {
+                                                            if (entry.getKey().isSelected()) {
+                                                                c.add(entry.getValue());
+                                                            }
+                                                        }
+
+                                                        method.invoke(xbee, new Object[]{c});
+                                                        update(method);
+                                                    } catch (Exception ex) {
+                                                        logger.error(ex);
+                                                        ex.printStackTrace();
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    } catch (IllegalAccessException ex) {
+                                        logger.error(ex);
+                                    } catch (IllegalArgumentException ex) {
+                                        logger.error(ex);
+                                    } catch (InvocationTargetException ex) {
+                                        logger.error(ex);
+                                    } catch (NoSuchMethodException ex) {
+                                        logger.error(ex);
+                                    } catch (SecurityException ex) {
+                                        logger.error(ex);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                setterPanel.add(panel);
+                JScrollPane jScrollPane = new JScrollPane(panel);
+                jScrollPane.setAlignmentX(CENTER_ALIGNMENT);
+                setterPanel.add(jScrollPane);
+                jSplitPane1.resetToPreferredSizes();
                 panel.validate();
                 panel.repaint();
                 frame.validate();
@@ -238,10 +330,25 @@ public class ParametersConfig extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jButton1 = new javax.swing.JButton();
+        jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jButton1 = new javax.swing.JButton();
         setterPanel = new javax.swing.JPanel();
+
+        jButton1.setText("Refresh");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jSplitPane1.setDividerLocation(400);
+        jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+        jSplitPane1.setResizeWeight(1.0);
+        jSplitPane1.setContinuousLayout(true);
+        jSplitPane1.setDoubleBuffered(true);
+        jSplitPane1.setLastDividerLocation(400);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -256,23 +363,11 @@ public class ParametersConfig extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(jTable1);
 
-        jButton1.setText("Refresh");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jSplitPane1.setTopComponent(jScrollPane1);
 
-        javax.swing.GroupLayout setterPanelLayout = new javax.swing.GroupLayout(setterPanel);
-        setterPanel.setLayout(setterPanelLayout);
-        setterPanelLayout.setHorizontalGroup(
-            setterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 376, Short.MAX_VALUE)
-        );
-        setterPanelLayout.setVerticalGroup(
-            setterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 155, Short.MAX_VALUE)
-        );
+        setterPanel.setPreferredSize(new java.awt.Dimension(76, 10));
+        setterPanel.setLayout(new javax.swing.BoxLayout(setterPanel, javax.swing.BoxLayout.LINE_AXIS));
+        jSplitPane1.setRightComponent(setterPanel);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -281,18 +376,15 @@ public class ParametersConfig extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(setterPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE))
+                    .addComponent(jSplitPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 205, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(setterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 366, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton1)
                 .addContainerGap())
@@ -305,6 +397,7 @@ public class ParametersConfig extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JPanel setterPanel;
     // End of variables declaration//GEN-END:variables
