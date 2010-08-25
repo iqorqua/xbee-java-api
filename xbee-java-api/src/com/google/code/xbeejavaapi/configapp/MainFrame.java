@@ -14,6 +14,7 @@ import com.google.code.xbeejavaapi.LocalXBee;
 import com.google.code.xbeejavaapi.XBeeFactory;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import gnu.io.CommPortIdentifier;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Level;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
 /**
@@ -37,6 +39,7 @@ public class MainFrame extends javax.swing.JFrame {
         initComponents();
         this.localNodesPane = localNodesPane;
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+        this.setSize(new Dimension(400, 600));
     }
 
     /** This method is called from within the constructor to
@@ -172,10 +175,22 @@ public class MainFrame extends javax.swing.JFrame {
             String portName = (String) serialPorts.getSelectedItem();
             LocalXBee xbee = new XBeeFactory(portName).newXBee();
             JTabbedPane jTabbedPane = new JTabbedPane();
+
             ParametersConfig valuesDisplay = new ParametersConfig(xbee, this);
             jTabbedPane.addTab("Parameters", valuesDisplay);
+
+            Operations operations = new Operations(xbee);
+            JScrollPane operationsPane = new JScrollPane(operations);
+            jTabbedPane.addTab("Operations", operationsPane);
+
+            IO io = new IO(xbee);
+            JScrollPane ioPane = new JScrollPane(io);
+            jTabbedPane.addTab("IO", ioPane);
+
             NodeDiscovery nodeDiscovery = new NodeDiscovery(xbee, this, jTabbedPane);
-            jTabbedPane.addTab("Node Discovery", nodeDiscovery);
+            JScrollPane nodeDiscoveryPane = new JScrollPane(nodeDiscovery);
+            jTabbedPane.addTab("Node Discovery", nodeDiscoveryPane);
+
             localNodesPane.addTab(xbee.getNodeIdentifier() + " @" + portName, jTabbedPane);
         } catch (XBeeOperationFailedException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);

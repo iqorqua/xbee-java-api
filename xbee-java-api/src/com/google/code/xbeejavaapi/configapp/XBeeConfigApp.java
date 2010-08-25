@@ -25,7 +25,7 @@ public class XBeeConfigApp {
 
     public static void main(String[] args) throws XBeeOperationFailedException {
         BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ERROR);
+        Logger.getRootLogger().setLevel(Level.ALL);
 
         JTabbedPane localNodesPane = new JTabbedPane();
         MainFrame jFrame = new MainFrame(localNodesPane);

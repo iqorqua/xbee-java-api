@@ -11,18 +11,22 @@ import com.google.code.xbeejavaapi.api.ATCommandResponse;
 import com.google.code.xbeejavaapi.api.ATCommandResponseFactory;
 import com.google.code.xbeejavaapi.api.Constants.*;
 import com.google.code.xbeejavaapi.api.DiscoveredNode;
-import com.google.code.xbeejavaapi.api.Frame;
 import com.google.code.xbeejavaapi.api.FrameWithID;
+import com.google.code.xbeejavaapi.api.IOState;
 import com.google.code.xbeejavaapi.api.TransmitStatusFactory;
 import com.google.code.xbeejavaapi.api.XBeeAddress;
 import com.google.code.xbeejavaapi.api.XBeeSerialNumber;
+import com.google.code.xbeejavaapi.exception.ATCommandReturnedErrorException;
 import com.google.code.xbeejavaapi.exception.ChecksumFailedException;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.log4j.Logger;
@@ -39,6 +43,8 @@ public class LocalXBee implements XBee {
     protected Map<Integer, int[]> messages = new HashMap<Integer, int[]>();
     protected int frameIDGenerator = 1;
     protected FrameListener listener;
+    protected Map<XBeeAddress, RemoteXBee> remoteXBees = new HashMap<XBeeAddress, RemoteXBee>();
+    protected ArrayList<ReceivedIOSamplesListener> receivedIOSamplesListeners = new ArrayList<ReceivedIOSamplesListener>();
 
     public LocalXBee(InputStream in, OutputStream out) throws XBeeOperationFailedException {
         this.in = in;
@@ -85,6 +91,11 @@ public class LocalXBee implements XBee {
         int frameID;
         frameID = sendATCommand(new ATCommandPayloadFactory().FR());
         ATCommandResponse.FR resp1 = listener.getResponse(frameID);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException ex) {
+        }
+        setAPIMode();
     }
 
     public void applyChanges() throws XBeeOperationFailedException {
@@ -627,11 +638,18 @@ public class LocalXBee implements XBee {
         return resp1.getEnabledBits();
     }
 
-    //TODO: Check the remote case (_1S)
-    public void forceSample() throws XBeeOperationFailedException {
+    public IOState forceSample() throws XBeeOperationFailedException {
         int frameID;
         frameID = sendATCommand(new ATCommandPayloadFactory().IS());
         ATCommandResponse.IS resp1 = listener.getResponse(frameID);
+
+        IOState state = new IOState(resp1.getDigitalIOState(), resp1.getAnalogIOState());
+
+        for (ReceivedIOSamplesListener receivedIOSamplesListener : receivedIOSamplesListeners) {
+            receivedIOSamplesListener.ioSamplesReceived(state);
+        }
+
+        return state;
     }
 
     /* Diagnostics */
@@ -792,7 +810,7 @@ public class LocalXBee implements XBee {
     }
 
     public Set<DiscoveredNode> searchNodes() throws XBeeOperationFailedException {
-        long nt = getNodeDiscoverTimeout() * 100;
+        long nt = (long) (getNodeDiscoverTimeout() * 100 * 1.2);
 
         int frameID;
         frameID = sendATCommand(new ATCommandPayloadFactory().ND());
@@ -810,7 +828,7 @@ public class LocalXBee implements XBee {
                     resp1.getStatus(),
                     resp1.getProfileId(),
                     resp1.getManufacturerId(),
-                    new RemoteXBee(resp1.getAddress()));
+                    openRemoteXBee(resp1.getAddress()));
             discoveredNodes.add(discoveredNode);
         }
 
@@ -1094,10 +1112,15 @@ public class LocalXBee implements XBee {
     }
 
     public RemoteXBee openRemoteXBee(XBeeAddress address) throws XBeeOperationFailedException {
-        return new RemoteXBee(address);
+
+        if (remoteXBees.get(address) == null) {
+            RemoteXBee xbee = new RemoteXBee(address);
+            remoteXBees.put(address, xbee);
+        }
+        return remoteXBees.get(address);
     }
 
-    protected int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
+    public int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
         int frameID = generateFrameID();
@@ -1133,7 +1156,7 @@ public class LocalXBee implements XBee {
                 sum += data[i];
             }
 
-            write(0xFF - sum);
+            write(0xFF - (sum % 256));
 
         } catch (IOException ex) {
             logger.error(ex);
@@ -1192,10 +1215,14 @@ public class LocalXBee implements XBee {
         return b;
     }
 
+    public void addDigitalChangeDetectionListener(ReceivedIOSamplesListener listener) {
+        receivedIOSamplesListeners.add(listener);
+    }
+
     class FrameListener extends Thread {
 
         Map<Integer, Object> locks = new HashMap<Integer, Object>();
-        Map<Integer, FrameWithID> frames = new HashMap<Integer, FrameWithID>();
+        Map<Integer, Object> frames = new HashMap<Integer, Object>();
 
         {
             for (int i = 0; i < 256; i++) {
@@ -1203,11 +1230,11 @@ public class LocalXBee implements XBee {
             }
         }
 
-        public <T extends FrameWithID> T getResponse(int id) {
+        public <T extends FrameWithID> T getResponse(int id) throws XBeeOperationFailedException {
             return (T) getResponse(id, 0);
         }
 
-        public <T extends FrameWithID> T getResponse(int id, long timeout) {
+        public <T extends FrameWithID> T getResponse(int id, long timeout) throws XBeeOperationFailedException {
             frames.put(id, null);
 
             synchronized (locks.get(id)) {
@@ -1216,6 +1243,10 @@ public class LocalXBee implements XBee {
                 } catch (InterruptedException ex) {
                     logger.error(ex);
                 }
+            }
+
+            if (frames.get(id) instanceof XBeeOperationFailedException) {
+                throw (XBeeOperationFailedException) frames.get(id);
             }
 
             return (T) frames.get(id);
@@ -1227,7 +1258,15 @@ public class LocalXBee implements XBee {
                 logger.debug("Started frameListener");
                 while (true) {
                     int b = read();
+                    if (b != 0x7E) {
+                        continue;
+                    }
                     int[] data = receiveFrame();
+
+                    if (APIFrameType.get(data[0]) == null) {
+                        logger.error("Received an unknown frame type: " + "0x" + Integer.toHexString(data[0]).toUpperCase());
+                        continue;
+                    }
 
                     String debug = "Received API Frame (" + APIFrameType.get(data[0]).toString() + "): ";
                     debug += data[0];
@@ -1236,39 +1275,121 @@ public class LocalXBee implements XBee {
                     }
                     logger.trace(debug);
 
-                    Frame frame = null;
-                    switch (APIFrameType.get(data[0])) {
-                        case TransmitStatus:
-                            frame = new TransmitStatusFactory().parse(data);
-                            break;
-                        case ATCommandResponse:
-                            frame = new ATCommandResponseFactory().parse(data);
-                            if (!((ATCommandResponse) frame).getCommandStatus().equals(ATCommandResponse.CommandStatus.OK)) {
-                                logger.error("ATCommand " + ((ATCommandResponse) frame).getCommand().getCommandString() + " returned an error");
-                            }
-                            break;
-                        case RemoteCommandResponse:
-                            int[] partialRemoteData = new int[data.length - 10];
-                            for (int i = 0; i < 2; i++) {
-                                partialRemoteData[i] = data[i];
-                            }
-                            for (int i = 12; i < data.length; i++) {
-                                partialRemoteData[i - 10] = data[i];
-                            }
-                            frame = new ATCommandResponseFactory().parse(partialRemoteData);
-                            if (!((ATCommandResponse) frame).getCommandStatus().equals(ATCommandResponse.CommandStatus.OK)) {
-                                logger.error("ATCommand " + ((ATCommandResponse) frame).getCommand().getCommandString() + " returned an error");
-                            }
-                            break;
-                        default:
-                            logger.warn("Received unknown frame type: " + data[0]);
-                            break;
+                    Object frame = null;
+                    try {
+                        switch (APIFrameType.get(data[0])) {
+                            case TransmitStatus:
+                                frame = new TransmitStatusFactory().parse(data);
+                                break;
+                            case ATCommandResponse:
+                                frame = new ATCommandResponseFactory().parse(data);
+                                if (!((ATCommandResponse) frame).getCommandStatus().equals(ATCommandResponse.CommandStatus.OK)) {
+                                    logger.error("ATCommand " + ((ATCommandResponse) frame).getCommand().getCommandString() + " returned an error");
+                                }
+                                break;
+                            case RemoteCommandResponse:
+                                int[] partialRemoteData = new int[data.length - 10];
+                                for (int i = 0; i < 2; i++) {
+                                    partialRemoteData[i] = data[i];
+                                }
+                                for (int i = 12; i < data.length; i++) {
+                                    partialRemoteData[i - 10] = data[i];
+                                }
+                                frame = new ATCommandResponseFactory().parse(partialRemoteData);
+                                if (!((ATCommandResponse) frame).getCommandStatus().equals(ATCommandResponse.CommandStatus.OK)) {
+                                    logger.error("ATCommand " + ((ATCommandResponse) frame).getCommand().getCommandString() + " returned an error");
+                                }
+                                break;
+                            case IODataSampleRxIndicator:
+
+                                int idx = 1;
+
+                                long highBytes = data[idx++];
+
+                                for (int i = 0; i < 3; i++) {
+                                    highBytes = highBytes << 8;
+                                    highBytes = highBytes | data[idx++];
+                                }
+
+                                long lowBytes = data[idx++];
+
+                                for (int i = 0; i < 3; i++) {
+                                    lowBytes = lowBytes << 8;
+                                    lowBytes = lowBytes | data[idx++];
+                                }
+
+                                XBeeAddress address = new XBeeAddress(highBytes, lowBytes);
+
+                                // Network Address:
+                                idx++;
+                                idx++;
+
+                                // Receive Options:
+                                idx++;
+
+                                // Num samples (1):
+                                idx++;
+
+                                HashMap<Digital_IO_Pin, Boolean> digitalIOState = new HashMap<Digital_IO_Pin, Boolean>();
+                                HashMap<Analog_IO_Pin, Double> analogIOState = new HashMap<Analog_IO_Pin, Double>();
+
+                                long enabledDigitalIOValue = data[idx++] << 8;
+                                enabledDigitalIOValue = enabledDigitalIOValue | data[idx++];
+
+                                List<Digital_IO_Pin> enabledDigitalIOPins = readEnabledBits(Digital_IO_Pin.class, 13, enabledDigitalIOValue);
+
+                                long enabledAnalogIOValue = data[idx++];
+
+                                List<Analog_IO_Pin> enabledAnalogIOPins = readEnabledBits(Analog_IO_Pin.class, 6, enabledAnalogIOValue);
+
+                                if (!enabledDigitalIOPins.isEmpty()) {
+                                    long digitalIOStateValue = data[idx++] << 8;
+                                    digitalIOStateValue = digitalIOStateValue | data[idx++];
+
+                                    List<Digital_IO_Pin> tempEnabledDigitalIOState = readEnabledBits(Digital_IO_Pin.class, 13, digitalIOStateValue);
+
+                                    for (Digital_IO_Pin digital_IO_Pin : enabledDigitalIOPins) {
+                                        if (tempEnabledDigitalIOState.contains(digital_IO_Pin)) {
+                                            digitalIOState.put(digital_IO_Pin, Boolean.TRUE);
+                                        } else {
+                                            digitalIOState.put(digital_IO_Pin, Boolean.FALSE);
+                                        }
+                                    }
+                                }
+
+                                for (Analog_IO_Pin analog_IO_Pin : enabledAnalogIOPins) {
+                                    long value = data[idx++] << 8;
+                                    value = value | data[idx++];
+
+                                    analogIOState.put(analog_IO_Pin, (double) value);
+                                }
+
+                                IOState ioState = new IOState(digitalIOState, analogIOState);
+
+                                for (ReceivedIOSamplesListener receivedIOSamplesListener : openRemoteXBee(address).receivedIOSamplesListeners) {
+                                    receivedIOSamplesListener.ioSamplesReceived(ioState);
+                                }
+
+                                break;
+                            default:
+                                logger.warn("Received unknown frame type: " + data[0]);
+                                break;
+                        }
+                    } catch (ATCommandReturnedErrorException ex) {
+                        logger.error(ex);
+                        frame = ex;
                     }
                     if (frame != null && frame instanceof FrameWithID) {
                         FrameWithID frameWithID = (FrameWithID) frame;
                         frames.put(frameWithID.getId(), frameWithID);
                         synchronized (locks.get(frameWithID.getId())) {
                             locks.get(frameWithID.getId()).notifyAll();
+                        }
+                    } else if (frame instanceof ATCommandReturnedErrorException) {
+                        ATCommandReturnedErrorException ex = (ATCommandReturnedErrorException) frame;
+                        frames.put(ex.getFrameID(), ex);
+                        synchronized (locks.get(ex.getFrameID())) {
+                            locks.get(ex.getFrameID()).notifyAll();
                         }
                     }
                     logger.debug("API Frame: " + frame);
@@ -1280,6 +1401,37 @@ public class LocalXBee implements XBee {
             } catch (IOException ex) {
                 logger.error(ex);
             }
+        }
+
+        private <T> List<T> readEnabledBits(Class e, int nBits, long value) {
+
+            ArrayList<T> enabledBits = new ArrayList<T>();
+
+            int[] bits = new int[nBits];
+            for (int i = 0; i < nBits; i++) {
+                bits[i] = i;
+            }
+
+            Method m;
+            try {
+                m = e.getMethod("values", new Class[0]);
+                ValueBasedEnum[] values = (ValueBasedEnum[]) m.invoke(null, new Object[0]);
+                for (int idx = 0; idx < bits.length; idx++) {
+                    int bit = bits[idx];
+                    if ((value & (0x1 << bit)) != 0) {
+                        for (int j = 0; j < values.length; j++) {
+                            ValueBasedEnum valueBasedEnum = values[j];
+                            if (valueBasedEnum.getValue() == bit) {
+                                enabledBits.add((T) valueBasedEnum);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error(ex);
+            }
+
+            return enabledBits;
         }
 
         /**
@@ -1353,6 +1505,15 @@ public class LocalXBee implements XBee {
             sendFrame(data);
 
             return frameID;
+        }
+
+        @Override
+        public IOState forceSample() throws XBeeOperationFailedException {
+            IOState state = super.forceSample();
+            for (ReceivedIOSamplesListener receivedIOSamplesListener : receivedIOSamplesListeners) {
+                receivedIOSamplesListener.ioSamplesReceived(state);
+            }
+            return state;
         }
     }
 }

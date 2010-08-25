@@ -4,7 +4,6 @@
  */
 package com.google.code.xbeejavaapi;
 
-import com.google.code.xbeejavaapi.api.ATCommandRequest;
 import com.google.code.xbeejavaapi.api.Constants.AD0_DIO0_Configuration;
 import com.google.code.xbeejavaapi.api.Constants.AD1_DIO1_Configuration;
 import com.google.code.xbeejavaapi.api.Constants.AD2_DIO2_Configuration;
@@ -32,6 +31,7 @@ import com.google.code.xbeejavaapi.api.Constants.Sleep_Mode;
 import com.google.code.xbeejavaapi.api.Constants.Sleep_Option;
 import com.google.code.xbeejavaapi.api.Constants.Sleep_Status_Value;
 import com.google.code.xbeejavaapi.api.DiscoveredNode;
+import com.google.code.xbeejavaapi.api.IOState;
 import com.google.code.xbeejavaapi.api.XBeeAddress;
 import com.google.code.xbeejavaapi.api.XBeeSerialNumber;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
@@ -42,6 +42,13 @@ import java.util.Set;
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
 public interface XBee {
+
+    public interface ReceivedIOSamplesListener {
+
+        public void ioSamplesReceived(IOState state);
+    }
+
+    public void write() throws XBeeOperationFailedException;
 
     void applyChanges() throws XBeeOperationFailedException;
 
@@ -55,7 +62,7 @@ public interface XBee {
 
     XBeeAddress discoverNode(String node) throws XBeeOperationFailedException;
 
-    void forceSample() throws XBeeOperationFailedException;
+    IOState forceSample() throws XBeeOperationFailedException;
 
     AD0_DIO0_Configuration getAD0DIO0Configuration() throws XBeeOperationFailedException;
 
@@ -322,4 +329,6 @@ public interface XBee {
     public void setMeshNetworkRetries(long meshNetworkRetries) throws XBeeOperationFailedException;
 
     public long getMeshNetworkRetries() throws XBeeOperationFailedException;
+
+    public void addDigitalChangeDetectionListener(ReceivedIOSamplesListener listener);
 }

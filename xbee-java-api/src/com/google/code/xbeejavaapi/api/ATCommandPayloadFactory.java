@@ -15,7 +15,7 @@ import java.util.Set;
 public class ATCommandPayloadFactory {
 
     private static final Logger logger = Logger.getLogger(ATCommandPayloadFactory.class);
-    
+
     /* Special */
     /**
      * Write. Write parameter values to non-volatile memory so that parameter
@@ -38,7 +38,7 @@ public class ATCommandPayloadFactory {
      * performs a FR reset 100ms later.
      */
     public ATCommandRequest FR() {
-        return new ATCommandRequest(ATCommand.RE, new int[]{});
+        return new ATCommandRequest(ATCommand.FR, new int[]{});
     }
 
     /**
