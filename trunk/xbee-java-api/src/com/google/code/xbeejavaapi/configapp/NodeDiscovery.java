@@ -12,10 +12,10 @@ package com.google.code.xbeejavaapi.configapp;
 
 import com.google.code.xbeejavaapi.LocalXBee;
 import com.google.code.xbeejavaapi.api.DiscoveredNode;
-import com.google.code.xbeejavaapi.configapp.ParametersConfig;
 import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import org.apache.log4j.Logger;
 
@@ -191,8 +191,13 @@ public class NodeDiscovery extends javax.swing.JPanel {
         if (nodesList.getSelectedIndex() != -1) {
             DiscoveredNode discoveredNode = discoveredNodes.get(nodesList.getSelectedIndex());
             ParametersConfig parametersConfig = new ParametersConfig(discoveredNode.getXbee(), frame);
+            Operations operations = new Operations(discoveredNode.getXbee());
             JTabbedPane remoteNodeTab = new JTabbedPane();
             remoteNodeTab.addTab("Parameters", parametersConfig);
+            remoteNodeTab.addTab("Operations", operations);
+            IO io = new IO(discoveredNode.getXbee());
+            JScrollPane ioPane = new JScrollPane(io);
+            remoteNodeTab.addTab("IO", ioPane);
             jTabbedPane.addTab(discoveredNode.getNodeIdentifier() + " (remote)", remoteNodeTab);
         }
     }//GEN-LAST:event_jButton1ActionPerformed

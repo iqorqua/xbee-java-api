@@ -14,6 +14,7 @@ import com.google.code.xbeejavaapi.XBee;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,6 +85,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                             try {
                                                 Long l = new Long(jTextField.getText());
                                                 method.invoke(xbee, new Object[]{l});
+                                                update(method);
                                             } catch (Exception ex) {
                                                 logger.error(ex);
                                             }
@@ -112,6 +114,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                                 Object selectedName = "" + jComboBox.getSelectedItem();
                                                 Object enumElement = parameter.getMethod("valueOf", new Class[]{String.class}).invoke(null, new Object[]{selectedName});
                                                 method.invoke(xbee, new Object[]{enumElement});
+                                                update(method);
                                             } catch (Exception ex) {
                                                 logger.error(ex);
                                                 ex.printStackTrace();
@@ -132,6 +135,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                         public void actionPerformed(ActionEvent e) {
                                             try {
                                                 method.invoke(xbee, new Object[]{jTextField.getText()});
+                                                update(method);
                                             } catch (Exception ex) {
                                                 logger.error(ex);
                                                 ex.printStackTrace();
@@ -161,22 +165,13 @@ public class ParametersConfig extends javax.swing.JPanel {
                     && method.getParameterTypes().length == 0
                     && !method.getName().equals("getClass")) {
                 try {
-                    Object value = method.invoke(xbee, new Object[]{});
-                    if (value instanceof Long) {
-                        value = "0x" + Long.toHexString((Long) value).toUpperCase();
-                    } else if (value instanceof Collection) {
-                        Collection c = (Collection) value;
-                        String s = "[ ";
-                        Iterator iter = c.iterator();
-                        if (iter.hasNext()) {
-                            s += "" + iter.next().toString();
-                        }
-                        while (iter.hasNext()) {
-                            s += ", " + iter.next().toString();
-                        }
-                        s += " ]";
-                        value = s;
+                    Object value;
+                    try {
+                        value = method.invoke(xbee, new Object[]{});
+                    } catch (InvocationTargetException e) {
+                        value = "<Exception " + e.getCause().getMessage() + ">";
                     }
+                    value = valueToString(value);
                     tableModel.addRow(new Object[]{method.getName().replace("get", ""), value});
                     propertyNames.add(method.getName().replace("get", ""));
                 } catch (Exception ex) {
@@ -185,6 +180,53 @@ public class ParametersConfig extends javax.swing.JPanel {
                 }
             }
         }
+    }
+
+    private void update(Method m) {
+
+        Method[] methods = xbee.getClass().getMethods();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String name = (String) tableModel.getValueAt(i, 0);
+            if (("set" + name).equals(m.getName())) {
+                for (int j = 0; j < methods.length; j++) {
+                    Method method = methods[j];
+                    if (method.getName().equals(("get" + name))) {
+                        try {
+                            Object value;
+                            try {
+                                value = method.invoke(xbee, new Object[]{});
+                            } catch (InvocationTargetException e) {
+                                value = "<Exception " + e.getCause().getMessage() + ">";
+                            }
+                            value = valueToString(value);
+                            tableModel.setValueAt(value, i, 1);
+                        } catch (Exception ex) {
+                            logger.error(ex);
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Object valueToString(Object value) {
+        if (value instanceof Long) {
+            value = "0x" + Long.toHexString((Long) value).toUpperCase();
+        } else if (value instanceof Collection) {
+            Collection c = (Collection) value;
+            String s = "[ ";
+            Iterator iter = c.iterator();
+            if (iter.hasNext()) {
+                s += "" + iter.next().toString();
+            }
+            while (iter.hasNext()) {
+                s += ", " + iter.next().toString();
+            }
+            s += " ]";
+            value = s;
+        }
+        return value;
     }
 
     /** This method is called from within the constructor to

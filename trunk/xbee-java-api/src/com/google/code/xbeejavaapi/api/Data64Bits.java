@@ -31,6 +31,32 @@ public class Data64Bits {
 
     @Override
     public String toString() {
-        return "high=0x" + Long.toHexString(highBytes).toUpperCase() + " low=0x" + Long.toHexString(lowBytes).toUpperCase();
+        return "low=0x" + Long.toHexString(lowBytes).toUpperCase() + " high=0x" + Long.toHexString(highBytes).toUpperCase();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Data64Bits other = (Data64Bits) obj;
+        if (this.highBytes != other.highBytes) {
+            return false;
+        }
+        if (this.lowBytes != other.lowBytes) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 97 * hash + (int) (this.highBytes ^ (this.highBytes >>> 32));
+        hash = 97 * hash + (int) (this.lowBytes ^ (this.lowBytes >>> 32));
+        return hash;
     }
 }

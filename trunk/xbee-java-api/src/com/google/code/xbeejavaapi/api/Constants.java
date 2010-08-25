@@ -367,7 +367,7 @@ public class Constants {
         private int value;
 
         private Pullup_Resistor(int bit) {
-            this.value = 0x1 << bit;
+            this.value = bit;
         }
 
         public int getValue() {
@@ -393,7 +393,26 @@ public class Constants {
         private int value;
 
         private Digital_IO_Pin(int bit) {
-            this.value = 0x1 << bit;
+            this.value = bit;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    public static enum Analog_IO_Pin implements ValueBasedEnum {
+
+        AD0(0),
+        AD1(1),
+        AD2(2),
+        AD3(3),
+        AD4(4),
+        AD5(5),;
+        private int value;
+
+        private Analog_IO_Pin(int bit) {
+            this.value = bit;
         }
 
         public int getValue() {
@@ -557,6 +576,19 @@ public class Constants {
 
         public int getValue() {
             return value;
+        }
+    }
+
+    public static enum Command_Status {
+
+        OK(0),
+        ERROR(1),
+        INVALID_COMMAND(2),
+        INVALID_PARAMETER(3),;
+        private int value;
+
+        private Command_Status(int value) {
+            this.value = value;
         }
     }
 }

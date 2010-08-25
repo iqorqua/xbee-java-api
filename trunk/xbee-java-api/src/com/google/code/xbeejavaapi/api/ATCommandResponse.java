@@ -4,6 +4,8 @@
  */
 package com.google.code.xbeejavaapi.api;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -211,7 +213,7 @@ public abstract class ATCommandResponse extends FrameWithID {
                 ValueBasedEnum[] values = (ValueBasedEnum[]) m.invoke(null, new Object[0]);
                 for (int idx = 0; idx < bits.length; idx++) {
                     int bit = bits[idx];
-                    if ((getValue() & (0x1 << bit)) == 1) {
+                    if ((getValue() & (0x1 << bit)) != 0) {
                         for (int j = 0; j < values.length; j++) {
                             ValueBasedEnum valueBasedEnum = values[j];
                             if (valueBasedEnum.getValue() == bit) {
@@ -556,12 +558,87 @@ public abstract class ATCommandResponse extends FrameWithID {
 
     public static class IS extends ATCommandResponse {
 
+        private HashMap<Digital_IO_Pin, Boolean> digitalIOState = new HashMap<Digital_IO_Pin, Boolean>();
+        private HashMap<Analog_IO_Pin, Double> analogIOState = new HashMap<Analog_IO_Pin, Double>();
+
         public IS(int[] data) {
             super(data);
+
+            int idx = 6;
+
+            long enabledDigitalIOValue = data[idx++] << 8;
+            enabledDigitalIOValue = enabledDigitalIOValue | data[idx++];
+
+            List<Digital_IO_Pin> enabledDigitalIOPins = readEnabledBits(Digital_IO_Pin.class, 13, enabledDigitalIOValue);
+
+            long enabledAnalogIOValue = data[idx++];
+
+            List<Analog_IO_Pin> enabledAnalogIOPins = readEnabledBits(Analog_IO_Pin.class, 6, enabledAnalogIOValue);
+
+            if (!enabledDigitalIOPins.isEmpty()) {
+                long digitalIOStateValue = data[idx++] << 8;
+                digitalIOStateValue = digitalIOStateValue | data[idx++];
+
+                List<Digital_IO_Pin> tempEnabledDigitalIOState = readEnabledBits(Digital_IO_Pin.class, 13, digitalIOStateValue);
+
+                for (Digital_IO_Pin digital_IO_Pin : enabledDigitalIOPins) {
+                    if (tempEnabledDigitalIOState.contains(digital_IO_Pin)) {
+                        digitalIOState.put(digital_IO_Pin, Boolean.TRUE);
+                    } else {
+                        digitalIOState.put(digital_IO_Pin, Boolean.FALSE);
+                    }
+                }
+            }
+
+            for (Analog_IO_Pin analog_IO_Pin : enabledAnalogIOPins) {
+                long value = data[idx++] << 8;
+                value = value | data[idx++];
+
+                analogIOState.put(analog_IO_Pin, (double) value);
+            }
+        }
+
+        private <T> List<T> readEnabledBits(Class e, int nBits, long value) {
+
+            ArrayList<T> enabledBits = new ArrayList<T>();
+
+            int[] bits = new int[nBits];
+            for (int i = 0; i < nBits; i++) {
+                bits[i] = i;
+            }
+
+            Method m;
+            try {
+                m = e.getMethod("values", new Class[0]);
+                ValueBasedEnum[] values = (ValueBasedEnum[]) m.invoke(null, new Object[0]);
+                for (int idx = 0; idx < bits.length; idx++) {
+                    int bit = bits[idx];
+                    if ((value & (0x1 << bit)) != 0) {
+                        for (int j = 0; j < values.length; j++) {
+                            ValueBasedEnum valueBasedEnum = values[j];
+                            if (valueBasedEnum.getValue() == bit) {
+                                enabledBits.add((T) valueBasedEnum);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error(ex);
+            }
+
+            return enabledBits;
+        }
+
+        public HashMap<Analog_IO_Pin, Double> getAnalogIOState() {
+            return analogIOState;
+        }
+
+        public HashMap<Digital_IO_Pin, Boolean> getDigitalIOState() {
+            return digitalIOState;
         }
     }
 
-    public static class _1S extends ATCommandResponse {
+    public static class _1S extends IS {
 
         public _1S(int[] data) {
             super(data);

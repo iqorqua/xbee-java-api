@@ -23,7 +23,8 @@ public enum APIFrameType {
     ExplicitAddressingCommand(0x11),
     TransmitStatus(0x8B),
     ReceivePacket(0x90),
-    ExplicitRxIndicator(0x91);
+    ExplicitRxIndicator(0x91),
+    IODataSampleRxIndicator(0x92);
     private int value;
     private static final Map<Integer, APIFrameType> values = new HashMap<Integer, APIFrameType>();
 
