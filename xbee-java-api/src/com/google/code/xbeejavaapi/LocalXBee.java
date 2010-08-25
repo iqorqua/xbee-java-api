@@ -1120,7 +1120,7 @@ public class LocalXBee implements XBee {
         return remoteXBees.get(address);
     }
 
-    public int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
+    public synchronized int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
         int frameID = generateFrameID();
@@ -1514,6 +1514,16 @@ public class LocalXBee implements XBee {
                 receivedIOSamplesListener.ioSamplesReceived(state);
             }
             return state;
+        }
+
+        public void softwareReset() throws XBeeOperationFailedException {
+            int frameID;
+            frameID = sendATCommand(new ATCommandPayloadFactory().FR());
+            ATCommandResponse.FR resp1 = listener.getResponse(frameID);
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ex) {
+            }
         }
     }
 }

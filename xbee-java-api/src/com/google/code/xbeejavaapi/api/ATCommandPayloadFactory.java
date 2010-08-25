@@ -301,7 +301,7 @@ public class ATCommandPayloadFactory {
         for (Pullup_Resistor pullupResistor : enabledPullupResistors) {
             value = value | (0x1 << pullupResistor.getValue());
         }
-        return new ATCommandRequest(ATCommand.PR, new int[]{value});
+        return new ATCommandRequest(ATCommand.PR, to2Bytes(value));
     }
 
     public ATCommandRequest queryPR() {
@@ -376,7 +376,7 @@ public class ATCommandPayloadFactory {
         for (Digital_IO_Pin digitalIOPin : enabledDigitalChangeDetectionIOPins) {
             value = value | (0x1 << digitalIOPin.getValue());
         }
-        return new ATCommandRequest(ATCommand.IC, new int[]{value});
+        return new ATCommandRequest(ATCommand.IC, to2Bytes(value));
     }
 
     public ATCommandRequest queryIC() {
