@@ -45,6 +45,8 @@ public class LocalXBee implements XBee {
     protected FrameListener listener;
     protected Map<XBeeAddress, RemoteXBee> remoteXBees = new HashMap<XBeeAddress, RemoteXBee>();
     protected ArrayList<ReceivedIOSamplesListener> receivedIOSamplesListeners = new ArrayList<ReceivedIOSamplesListener>();
+    protected long waitForModuleResponseTimeout = 4000;
+    protected Object lock = new Object();
 
     public LocalXBee(InputStream in, OutputStream out) throws XBeeOperationFailedException {
         this.in = in;
@@ -1111,6 +1113,14 @@ public class LocalXBee implements XBee {
         return resp1.getValue();
     }
 
+    public long getWaitForModuleResponseTimeout() {
+        return waitForModuleResponseTimeout;
+    }
+
+    public void setWaitForModuleResponseTimeout(long waitForModuleResponseTimeout) {
+        this.waitForModuleResponseTimeout = waitForModuleResponseTimeout;
+    }
+
     public RemoteXBee openRemoteXBee(XBeeAddress address) throws XBeeOperationFailedException {
 
         if (remoteXBees.get(address) == null) {
@@ -1120,7 +1130,7 @@ public class LocalXBee implements XBee {
         return remoteXBees.get(address);
     }
 
-    public synchronized int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
+    public int sendATCommand(ATCommandRequest command) throws XBeeOperationFailedException {
         int[] data = new int[4 + command.getParameters().length];
         int i = 0;
         int frameID = generateFrameID();
@@ -1131,6 +1141,7 @@ public class LocalXBee implements XBee {
         for (int j = 0; j < command.getParameters().length; j++) {
             data[i++] = command.getParameters()[j];
         }
+
         sendFrame(data);
 
         return frameID;
@@ -1145,24 +1156,25 @@ public class LocalXBee implements XBee {
     }
 
     protected void sendFrame(int[] data) throws XBeeOperationFailedException {
-        try {
-            write(0x7E);
-            write(data.length >> 8);
-            write(data.length);
-            write(data);
+        synchronized (out) {
+            try {
+                write(0x7E);
+                write(data.length >> 8);
+                write(data.length);
+                write(data);
 
-            int sum = 0;
-            for (int i = 0; i < data.length; i++) {
-                sum += data[i];
+                int sum = 0;
+                for (int i = 0; i < data.length; i++) {
+                    sum += data[i];
+                }
+
+                write(0xFF - (sum % 256));
+
+            } catch (IOException ex) {
+                logger.error(ex);
+                throw new XBeeOperationFailedException();
             }
-
-            write(0xFF - (sum % 256));
-
-        } catch (IOException ex) {
-            logger.error(ex);
-            throw new XBeeOperationFailedException();
         }
-
     }
 
     /**
@@ -1231,7 +1243,13 @@ public class LocalXBee implements XBee {
         }
 
         public <T extends FrameWithID> T getResponse(int id) throws XBeeOperationFailedException {
-            return (T) getResponse(id, 0);
+            T response = (T) getResponse(id, waitForModuleResponseTimeout);
+
+            if (response == null) {
+                throw new XBeeOperationFailedException("Timeout while waiting for frame.");
+            }
+
+            return response;
         }
 
         public <T extends FrameWithID> T getResponse(int id, long timeout) throws XBeeOperationFailedException {
@@ -1477,6 +1495,7 @@ public class LocalXBee implements XBee {
             this.messages = LocalXBee.this.messages;
             this.frameIDGenerator = LocalXBee.this.frameIDGenerator;
             this.listener = LocalXBee.this.listener;
+            this.lock = LocalXBee.this.lock;
         }
 
         @Override

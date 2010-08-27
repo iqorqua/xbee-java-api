@@ -249,7 +249,7 @@ public class ParametersConfig extends javax.swing.JPanel {
 
     private void update() {
         tableModel.setNumRows(0);
-        Method[] methods = xbee.getClass().getMethods();
+        Method[] methods = XBee.class.getMethods();
         propertyNames = new ArrayList<String>();
         for (int i = 0; i < methods.length; i++) {
             Method method = methods[i];

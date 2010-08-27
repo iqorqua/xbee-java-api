@@ -88,6 +88,6 @@ public class TransmitStatus extends FrameWithID {
 
     @Override
     public String toString() {
-        return "TransmitStatus{" + "transmitRetryCount=" + transmitRetryCount + " deliveryStatus=" + deliveryStatus.toString() + " discoveryStatus=" + discoveryStatus.toString() + '}';
+        return "TransmitStatus{" + "transmitRetryCount=" + transmitRetryCount + " deliveryStatus=" + (deliveryStatus == null ? "null" : deliveryStatus) + " discoveryStatus=" + (discoveryStatus == null ? "null" : discoveryStatus) + '}';
     }
 }
