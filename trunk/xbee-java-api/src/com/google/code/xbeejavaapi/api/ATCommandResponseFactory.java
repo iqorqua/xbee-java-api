@@ -4,8 +4,8 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import com.google.code.xbeejavaapi.exception.ATCommandReturnedErrorException;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.exception.ATCommandReturnedErrorException;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.EnumMap;

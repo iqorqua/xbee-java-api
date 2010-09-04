@@ -10,9 +10,9 @@
  */
 package com.google.code.xbeejavaapi.configapp;
 
-import com.google.code.xbeejavaapi.LocalXBee;
-import com.google.code.xbeejavaapi.XBeeFactory;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.LocalXBee;
+import com.google.code.xbeejavaapi.api.XBeeFactory;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import gnu.io.CommPortIdentifier;
 import java.awt.Dimension;
 import java.util.ArrayList;

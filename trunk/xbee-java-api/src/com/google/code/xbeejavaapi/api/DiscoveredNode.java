@@ -4,8 +4,7 @@
  */
 package com.google.code.xbeejavaapi.api;
 
-import com.google.code.xbeejavaapi.LocalXBee;
-import com.google.code.xbeejavaapi.LocalXBee.RemoteXBee;
+import com.google.code.xbeejavaapi.api.LocalXBee.RemoteXBee;
 import com.google.code.xbeejavaapi.api.Constants.Device_Type;
 import org.apache.log4j.Logger;
 

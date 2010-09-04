@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.google.code.xbeejavaapi;
+package com.google.code.xbeejavaapi.api;
 
 import com.google.code.xbeejavaapi.api.Constants.AD0_DIO0_Configuration;
 import com.google.code.xbeejavaapi.api.Constants.AD1_DIO1_Configuration;
@@ -34,7 +34,7 @@ import com.google.code.xbeejavaapi.api.DiscoveredNode;
 import com.google.code.xbeejavaapi.api.IOState;
 import com.google.code.xbeejavaapi.api.XBeeAddress;
 import com.google.code.xbeejavaapi.api.XBeeSerialNumber;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import java.util.Set;
 
 /**

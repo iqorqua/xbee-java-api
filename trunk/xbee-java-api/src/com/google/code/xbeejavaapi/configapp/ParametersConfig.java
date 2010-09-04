@@ -10,7 +10,7 @@
  */
 package com.google.code.xbeejavaapi.configapp;
 
-import com.google.code.xbeejavaapi.XBee;
+import com.google.code.xbeejavaapi.api.XBee;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
