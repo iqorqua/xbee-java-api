@@ -4,9 +4,9 @@
  */
 package com.google.code.xbeejavaapi.examples;
 
-import com.google.code.xbeejavaapi.XBee;
-import com.google.code.xbeejavaapi.XBeeFactory;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.XBee;
+import com.google.code.xbeejavaapi.api.XBeeFactory;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

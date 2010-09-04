@@ -594,7 +594,7 @@ public abstract class ATCommandResponse extends FrameWithID {
                 long value = data[idx++] << 8;
                 value = value | data[idx++];
 
-                analogIOState.put(analog_IO_Pin, (double) value);
+                analogIOState.put(analog_IO_Pin, (double) value / 1024.0);
             }
         }
 

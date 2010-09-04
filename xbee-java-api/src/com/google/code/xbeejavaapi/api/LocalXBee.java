@@ -2,23 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.google.code.xbeejavaapi;
+package com.google.code.xbeejavaapi.api;
 
-import com.google.code.xbeejavaapi.api.ATCommandRequest;
-import com.google.code.xbeejavaapi.api.APIFrameType;
-import com.google.code.xbeejavaapi.api.ATCommandPayloadFactory;
-import com.google.code.xbeejavaapi.api.ATCommandResponse;
-import com.google.code.xbeejavaapi.api.ATCommandResponseFactory;
 import com.google.code.xbeejavaapi.api.Constants.*;
-import com.google.code.xbeejavaapi.api.DiscoveredNode;
-import com.google.code.xbeejavaapi.api.FrameWithID;
-import com.google.code.xbeejavaapi.api.IOState;
-import com.google.code.xbeejavaapi.api.TransmitStatusFactory;
-import com.google.code.xbeejavaapi.api.XBeeAddress;
-import com.google.code.xbeejavaapi.api.XBeeSerialNumber;
-import com.google.code.xbeejavaapi.exception.ATCommandReturnedErrorException;
-import com.google.code.xbeejavaapi.exception.ChecksumFailedException;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.exception.ATCommandReturnedErrorException;
+import com.google.code.xbeejavaapi.api.exception.ChecksumFailedException;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

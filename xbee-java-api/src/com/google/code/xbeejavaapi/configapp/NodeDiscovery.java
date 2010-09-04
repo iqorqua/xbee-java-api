@@ -10,9 +10,9 @@
  */
 package com.google.code.xbeejavaapi.configapp;
 
-import com.google.code.xbeejavaapi.LocalXBee;
+import com.google.code.xbeejavaapi.api.LocalXBee;
 import com.google.code.xbeejavaapi.api.DiscoveredNode;
-import com.google.code.xbeejavaapi.exception.XBeeOperationFailedException;
+import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
