@@ -4,12 +4,8 @@
  */
 package com.google.code.xbeejavaapi.configapp;
 
-import com.google.code.xbeejavaapi.api.LocalXBee;
-import com.google.code.xbeejavaapi.api.XBeeFactory;
 import com.google.code.xbeejavaapi.api.exception.XBeeOperationFailedException;
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JTabbedPane;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -25,8 +21,14 @@ public class XBeeConfigApp {
 
     public static void main(String[] args) throws XBeeOperationFailedException {
         BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ALL);
-
+        Logger.getRootLogger().setLevel(Level.TRACE);
+        try {
+            if (args.length > 0) {
+                Logger.getRootLogger().setLevel(Level.toLevel(args[0]));
+            }
+        } catch (Exception e) {
+            logger.info(e);
+        }
         JTabbedPane localNodesPane = new JTabbedPane();
         MainFrame jFrame = new MainFrame(localNodesPane);
 

@@ -97,8 +97,17 @@ public class ParametersConfig extends javax.swing.JPanel {
 
                                         public void actionPerformed(ActionEvent e) {
                                             try {
-                                                Long l = new Long(jTextField.getText());
-                                                method.invoke(xbee, new Object[]{l});
+                                                long value;
+                                                {
+                                                    String text = jTextField.getText();
+                                                    text = text.replaceAll(" ", "");
+                                                    if (text.startsWith("0x") || text.startsWith("0X")) {
+                                                        value = Long.parseLong(text.substring(2), 16);
+                                                    } else {
+                                                        value = Long.parseLong(text);
+                                                    }
+                                                }
+                                                method.invoke(xbee, new Object[]{value});
                                                 update(method);
                                             } catch (Exception ex) {
                                                 logger.error(ex);
