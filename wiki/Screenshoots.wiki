@@ -3,8 +3,6 @@
 
 = Screenshoots =
 
-With the xbee-java-api an application which allows the configuration of XBees.
-
 [http://xbee-java-api.googlecode.com/svn/trunk/images/Screenshot-1.png]
 
 In the screenshoot: configuring the parameters of a remote device.
