@@ -13,11 +13,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -26,6 +32,10 @@ import org.apache.log4j.Logger;
  */
 public class LocalXBee implements XBee {
 
+    public interface DiscoveredNodeListener {
+
+        public void nodeFound(DiscoveredNode node);
+    }
     private static final Logger logger = Logger.getLogger(LocalXBee.class);
     protected InputStream in;
     protected OutputStream out;
@@ -34,7 +44,10 @@ public class LocalXBee implements XBee {
     protected FrameListener listener;
     protected Map<XBeeAddress, RemoteXBee> remoteXBees = new HashMap<XBeeAddress, RemoteXBee>();
     protected ArrayList<ReceivedIOSamplesListener> receivedIOSamplesListeners = new ArrayList<ReceivedIOSamplesListener>();
+    protected ArrayList<DiscoveredNodeListener> discoveredNodeListeners = new ArrayList<DiscoveredNodeListener>();
+    private List<XBeeInputStream> inputStreams = Collections.synchronizedList(new ArrayList<XBeeInputStream>());
     protected long waitForModuleResponseTimeout = 4000;
+    protected Set<DiscoveredNode> foundNodes = new HashSet<DiscoveredNode>();
     protected Object lock = new Object();
 
     public LocalXBee(InputStream in, OutputStream out) throws XBeeOperationFailedException {
@@ -43,6 +56,7 @@ public class LocalXBee implements XBee {
         setAPIMode();
         listener = new FrameListener();
         listener.start();
+        setAPIOutputFormat(APIOutputFormat.EXPLICIT_ADDRESSING_DATA_FRAMES);
     }
 
     public LocalXBee() {
@@ -63,7 +77,6 @@ public class LocalXBee implements XBee {
             throw new XBeeOperationFailedException();
         }
     }
-
 
     /* Special */
     public void write() throws XBeeOperationFailedException {
@@ -821,6 +834,13 @@ public class LocalXBee implements XBee {
                     resp1.getManufacturerId(),
                     openRemoteXBee(resp1.getAddress()));
             discoveredNodes.add(discoveredNode);
+
+            if (!foundNodes.contains(discoveredNode)) {
+                foundNodes.add(discoveredNode);
+                for (DiscoveredNodeListener discoveredNodeListener : discoveredNodeListeners) {
+                    discoveredNodeListener.nodeFound(discoveredNode);
+                }
+            }
         }
 
         return discoveredNodes;
@@ -1136,6 +1156,23 @@ public class LocalXBee implements XBee {
         return frameID;
     }
 
+    public XBeeInputStream openInputStream(Filter filter) {
+        XBeeInputStream is = new XBeeInputStream(filter);
+        inputStreams.add(is);
+        return is;
+    }
+
+    public XBeeOutputStream openOutputStream(
+            XBeeAddress destination,
+            long sourceEndpoint,
+            long destinationEndpoint,
+            long clusterId,
+            long profileId,
+            long maxBroadcastHops,
+            boolean attemptRouteDiscovery) {
+        return new XBeeOutputStream(destination, sourceEndpoint, destinationEndpoint, clusterId, profileId, maxBroadcastHops, attemptRouteDiscovery);
+    }
+
     protected int generateFrameID() {
         frameIDGenerator++;
         if (frameIDGenerator == 256) {
@@ -1220,6 +1257,10 @@ public class LocalXBee implements XBee {
         receivedIOSamplesListeners.add(listener);
     }
 
+    public void addDiscoveredNodeListener(DiscoveredNodeListener listener) {
+        discoveredNodeListeners.add(listener);
+    }
+
     class FrameListener extends Thread {
 
         Map<Integer, Object> locks = new HashMap<Integer, Object>();
@@ -1285,6 +1326,12 @@ public class LocalXBee implements XBee {
                     Object frame = null;
                     try {
                         switch (APIFrameType.get(data[0])) {
+                            case ReceivePacket:
+                                parseReceivePacket(data);
+                                break;
+                            case ExplicitRxIndicator:
+                                parseExplicitRxIndicator(data);
+                                break;
                             case TransmitStatus:
                                 frame = new TransmitStatusFactory().parse(data);
                                 break;
@@ -1379,7 +1426,7 @@ public class LocalXBee implements XBee {
 
                                 break;
                             default:
-                                logger.warn("Received unknown frame type: " + data[0]);
+                                logger.warn("Handle for frame type " + data[0] + " not implemented.");
                                 break;
                         }
                     } catch (ATCommandReturnedErrorException ex) {
@@ -1471,6 +1518,92 @@ public class LocalXBee implements XBee {
 
             return data;
         }
+
+        private void parseExplicitRxIndicator(int[] data) {
+
+            int idx = 1;
+
+            long highBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                highBytes = highBytes << 8;
+                highBytes = highBytes | data[idx++];
+            }
+
+            long lowBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                lowBytes = lowBytes << 8;
+                lowBytes = lowBytes | data[idx++];
+            }
+
+            XBeeAddress address = new XBeeAddress(highBytes, lowBytes);
+
+            // Reserved:
+            idx++;
+            idx++;
+
+            int sourceEndpoint = data[idx++];
+
+            int destinationEndpoint = data[idx++];
+
+            int clusterId = data[idx++] << 8;
+            clusterId = clusterId | data[idx++];
+
+            int profileId = data[idx++] << 8;
+            profileId = profileId | data[idx++];
+
+            // Receive Options:
+            idx++;
+
+            int[] rfData = Arrays.copyOfRange(data, idx, data.length);
+
+            for (XBeeInputStream xBeeInputStream : inputStreams) {
+                xBeeInputStream.newData(rfData, address, sourceEndpoint, destinationEndpoint, clusterId, profileId);
+            }
+        }
+
+        private void parseReceivePacket(int[] data) {
+
+            int idx = 1;
+
+            // Frame ID:
+            idx++;
+
+            long highBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                highBytes = highBytes << 8;
+                highBytes = highBytes | data[idx++];
+            }
+
+            long lowBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                lowBytes = lowBytes << 8;
+                lowBytes = lowBytes | data[idx++];
+            }
+
+            XBeeAddress address = new XBeeAddress(highBytes, lowBytes);
+
+            // Reserved:
+            idx++;
+            idx++;
+
+            int sourceEndpoint = -1;
+
+            int destinationEndpoint = -1;
+
+            int clusterId = -1;
+
+            int profileId = -1;
+
+            int[] rfData = Arrays.copyOfRange(data, idx, data.length);
+
+            for (XBeeInputStream xBeeInputStream : inputStreams) {
+                xBeeInputStream.newData(rfData, address, sourceEndpoint, destinationEndpoint, clusterId, profileId);
+            }
+        }
     }
 
     public class RemoteXBee extends LocalXBee implements XBee {
@@ -1532,6 +1665,184 @@ public class LocalXBee implements XBee {
                 Thread.sleep(200);
             } catch (InterruptedException ex) {
             }
+        }
+    }
+
+    public class XBeeOutputStream extends OutputStream {
+
+        private final Logger logger = Logger.getLogger(XBeeOutputStream.class);
+        private XBeeAddress destination;
+        private long sourceEndpoint;
+        private long destinationEndpoint;
+        private long clusterId;
+        private long profileId;
+        private long maxBroadcastHops;
+        private boolean attemptRouteDiscovery;
+        private long timeout = 1000;
+        private LinkedList<Integer> queue = new LinkedList<Integer>();
+        private final Object lock = new Object();
+
+        public XBeeOutputStream(XBeeAddress destination, long sourceEndpoint, long destinationEndpoint, long clusterId, long profileId, long maxBroadcastHops, boolean attemptRouteDiscovery) {
+            this.destination = destination;
+            this.sourceEndpoint = sourceEndpoint;
+            this.destinationEndpoint = destinationEndpoint;
+            this.clusterId = clusterId;
+            this.profileId = profileId;
+            this.maxBroadcastHops = maxBroadcastHops;
+            this.attemptRouteDiscovery = attemptRouteDiscovery;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            synchronized (lock) {
+                try {
+                    queue.addLast(b);
+                    if (queue.size() >= (int) getMaximumRFPayloadBytes()) {
+                        flush();
+                    } else {
+                        new Timer().schedule(new TimerTask() {
+
+                            @Override
+                            public void run() {
+                                try {
+                                    flush();
+                                } catch (IOException ex) {
+                                    logger.error(ex);
+                                }
+                            }
+                        }, timeout);
+                    }
+                } catch (XBeeOperationFailedException ex) {
+                    throw new IOException(ex);
+                }
+            }
+        }
+
+        @Override
+        public void flush() throws IOException {
+            synchronized (lock) {
+                try {
+                    while (!queue.isEmpty()) {
+                        int size = (int) getMaximumRFPayloadBytes();
+                        List<Integer> data = queue.subList(Math.max(0, queue.size() - size), queue.size());
+                        try {
+                            sendTransmitRequest(data.toArray(new Integer[data.size()]));
+                        } catch (XBeeOperationFailedException ex) {
+                            throw new IOException(ex);
+                        } finally {
+                            data.clear();
+                        }
+                    }
+                } catch (XBeeOperationFailedException ex) {
+                    throw new IOException(ex);
+                }
+            }
+        }
+
+        public void sendTransmitRequest(Integer[] payload) throws XBeeOperationFailedException {
+            int[] data = new int[14 + payload.length];
+            int i = 0;
+            int frameID = generateFrameID();
+            data[i++] = APIFrameType.TransmitRequest.getValue();
+            data[i++] = frameID;
+
+            data[i++] = (int) (destination.getHighBytes() >> 24 & 0xFF);
+            data[i++] = (int) (destination.getHighBytes() >> 16 & 0xFF);
+            data[i++] = (int) (destination.getHighBytes() >> 8 & 0xFF);
+            data[i++] = (int) (destination.getHighBytes() & 0xFF);
+
+            data[i++] = (int) (destination.getLowBytes() >> 24 & 0xFF);
+            data[i++] = (int) (destination.getLowBytes() >> 16 & 0xFF);
+            data[i++] = (int) (destination.getLowBytes() >> 8 & 0xFF);
+            data[i++] = (int) (destination.getLowBytes() & 0xFF);
+
+            data[i++] = (int) (0xFF);
+            data[i++] = (int) (0xFE);
+
+            data[i++] = (int) (maxBroadcastHops);
+
+            data[i++] = (int) (attemptRouteDiscovery ? 0 : 1 >> 1);
+
+            for (int j = 0; j < payload.length; j++) {
+                data[i++] = payload[j];
+            }
+
+            sendFrame(data);
+
+            TransmitStatus transmitStatus = listener.getResponse(frameID);
+            if (!transmitStatus.getDeliveryStatus().equals(TransmitStatus.DeliveryStatus.Success)) {
+                throw new XBeeOperationFailedException("Failed to transmit packet: " + transmitStatus.getDeliveryStatus().toString());
+            }
+        }
+
+        public long getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(long timeout) {
+            this.timeout = timeout;
+        }
+
+        @Override
+        public String toString() {
+            return "XBeeOutputStream{" + "destination=" + destination + "sourceEndpoint=" + sourceEndpoint + "destinationEndpoint=" + destinationEndpoint + "clusterId=" + clusterId + "profileId=" + profileId + "maxBroadcastHops=" + maxBroadcastHops + "attemptRouteDiscovery=" + attemptRouteDiscovery + "timeout=" + timeout + '}';
+        }
+    }
+
+    public class XBeeInputStream extends InputStream {
+
+        private Filter filter;
+        private final LinkedList<Integer> data = new LinkedList<Integer>();
+
+        public XBeeInputStream(Filter filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public int read() throws IOException {
+            synchronized (data) {
+                while (true) {
+                    if (!data.isEmpty()) {
+                        return data.pop();
+                    }
+                    try {
+                        data.wait(1000);
+                    } catch (InterruptedException ex) {
+                    }
+                }
+            }
+        }
+
+        public void newData(int[] data,
+                XBeeAddress senderAddress,
+                int sourceEndpoint,
+                int destinationEndpoint,
+                int clusterId,
+                int profileId) {
+            if (filter.matches(senderAddress,
+                    sourceEndpoint,
+                    destinationEndpoint,
+                    clusterId,
+                    profileId)) {
+                synchronized (data) {
+                    for (int i = 0; i < data.length; i++) {
+                        int j = data[i];
+                        this.data.addLast(j);
+                    }
+                    data.notifyAll();
+                }
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            inputStreams.remove(this);
+        }
+
+        @Override
+        public String toString() {
+            return "XBeeInputStream{" + "filter=" + filter + '}';
         }
     }
 }

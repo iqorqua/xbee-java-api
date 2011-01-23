@@ -77,4 +77,26 @@ public class DiscoveredNode {
                 + "profileId=" + "0x" + Long.toHexString(profileId).toUpperCase() + "\n"
                 + "manufacturerId=" + "0x" + Long.toHexString(manufacturerId).toUpperCase();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DiscoveredNode other = (DiscoveredNode) obj;
+        if (this.address != other.address && (this.address == null || !this.address.equals(other.address))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 61 * hash + (this.address != null ? this.address.hashCode() : 0);
+        return hash;
+    }
 }
