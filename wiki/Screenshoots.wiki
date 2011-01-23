@@ -7,4 +7,5 @@ With the xbee-java-api an application which allows the configuration of XBees.
 
 [http://xbee-java-api.googlecode.com/svn/trunk/images/Screenshot-1.png]
 
-As can be seen the parameters of a remote device can be configured.
+In the screenshoot: configuring the parameters of a remote device.
+
