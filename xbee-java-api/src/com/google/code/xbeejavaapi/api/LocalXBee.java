@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -37,6 +37,7 @@ public class LocalXBee implements XBee {
         public void nodeFound(DiscoveredNode node);
     }
     private static final Logger logger = Logger.getLogger(LocalXBee.class);
+    protected static final APIOutputFormat workingAPIOutputFormat = APIOutputFormat.EXPLICIT_ADDRESSING_DATA_FRAMES;
     protected InputStream in;
     protected OutputStream out;
     protected Map<Integer, int[]> messages = new HashMap<Integer, int[]>();
@@ -49,6 +50,7 @@ public class LocalXBee implements XBee {
     protected long waitForModuleResponseTimeout = 4000;
     protected Set<DiscoveredNode> foundNodes = new HashSet<DiscoveredNode>();
     protected Object lock = new Object();
+    protected Set<XBeeAddress> nodesListeningTo = new HashSet<XBeeAddress>();
 
     public LocalXBee(InputStream in, OutputStream out) throws XBeeOperationFailedException {
         this.in = in;
@@ -56,7 +58,7 @@ public class LocalXBee implements XBee {
         setAPIMode();
         listener = new FrameListener();
         listener.start();
-        setAPIOutputFormat(APIOutputFormat.EXPLICIT_ADDRESSING_DATA_FRAMES);
+        setAPIOutputFormat(workingAPIOutputFormat);
     }
 
     public LocalXBee() {
@@ -146,7 +148,7 @@ public class LocalXBee implements XBee {
         return resp1.getValue();
     }
 
-    public XBeeSerialNumber getSerialNumber() throws XBeeOperationFailedException {
+    public XBeeAddress getSerialNumber() throws XBeeOperationFailedException {
         int frameID;
         frameID = sendATCommand(new ATCommandPayloadFactory().querySH());
         ATCommandResponse.SH resp1 = listener.getResponse(frameID);
@@ -154,7 +156,7 @@ public class LocalXBee implements XBee {
         frameID = sendATCommand(new ATCommandPayloadFactory().querySL());
         ATCommandResponse.SL resp2 = listener.getResponse(frameID);
 
-        return new XBeeSerialNumber(resp1.getValue(), resp2.getValue());
+        return new XBeeAddress(resp1.getValue(), resp2.getValue());
     }
 
     public void setHoppingChannel(long hoppingChannel) throws XBeeOperationFailedException {
@@ -574,8 +576,15 @@ public class LocalXBee implements XBee {
 
     public void setIOSampleRate(long ioSampleRate) throws XBeeOperationFailedException {
         int frameID;
+        if (ioSampleRate > 0) {
+            System.out.println("Adding " + getSerialNumber() + " to nodesListeningTo");
+            nodesListeningTo.add(getSerialNumber());
+        }
         frameID = sendATCommand(new ATCommandPayloadFactory().setIR((int) ioSampleRate));
         ATCommandResponse.IR resp1 = listener.getResponse(frameID);
+        if (ioSampleRate == 0) {
+            nodesListeningTo.remove(getSerialNumber());
+        }
     }
 
     public long getIOSampleRate() throws XBeeOperationFailedException {
@@ -1355,75 +1364,7 @@ public class LocalXBee implements XBee {
                                 }
                                 break;
                             case IODataSampleRxIndicator:
-
-                                int idx = 1;
-
-                                long highBytes = data[idx++];
-
-                                for (int i = 0; i < 3; i++) {
-                                    highBytes = highBytes << 8;
-                                    highBytes = highBytes | data[idx++];
-                                }
-
-                                long lowBytes = data[idx++];
-
-                                for (int i = 0; i < 3; i++) {
-                                    lowBytes = lowBytes << 8;
-                                    lowBytes = lowBytes | data[idx++];
-                                }
-
-                                XBeeAddress address = new XBeeAddress(highBytes, lowBytes);
-
-                                // Network Address:
-                                idx++;
-                                idx++;
-
-                                // Receive Options:
-                                idx++;
-
-                                // Num samples (1):
-                                idx++;
-
-                                HashMap<Digital_IO_Pin, Boolean> digitalIOState = new HashMap<Digital_IO_Pin, Boolean>();
-                                HashMap<Analog_IO_Pin, Double> analogIOState = new HashMap<Analog_IO_Pin, Double>();
-
-                                long enabledDigitalIOValue = data[idx++] << 8;
-                                enabledDigitalIOValue = enabledDigitalIOValue | data[idx++];
-
-                                List<Digital_IO_Pin> enabledDigitalIOPins = readEnabledBits(Digital_IO_Pin.class, 13, enabledDigitalIOValue);
-
-                                long enabledAnalogIOValue = data[idx++];
-
-                                List<Analog_IO_Pin> enabledAnalogIOPins = readEnabledBits(Analog_IO_Pin.class, 6, enabledAnalogIOValue);
-
-                                if (!enabledDigitalIOPins.isEmpty()) {
-                                    long digitalIOStateValue = data[idx++] << 8;
-                                    digitalIOStateValue = digitalIOStateValue | data[idx++];
-
-                                    List<Digital_IO_Pin> tempEnabledDigitalIOState = readEnabledBits(Digital_IO_Pin.class, 13, digitalIOStateValue);
-
-                                    for (Digital_IO_Pin digital_IO_Pin : enabledDigitalIOPins) {
-                                        if (tempEnabledDigitalIOState.contains(digital_IO_Pin)) {
-                                            digitalIOState.put(digital_IO_Pin, Boolean.TRUE);
-                                        } else {
-                                            digitalIOState.put(digital_IO_Pin, Boolean.FALSE);
-                                        }
-                                    }
-                                }
-
-                                for (Analog_IO_Pin analog_IO_Pin : enabledAnalogIOPins) {
-                                    long value = data[idx++] << 8;
-                                    value = value | data[idx++];
-
-                                    analogIOState.put(analog_IO_Pin, (double) value);
-                                }
-
-                                IOState ioState = new IOState(digitalIOState, analogIOState);
-
-                                for (ReceivedIOSamplesListener receivedIOSamplesListener : openRemoteXBee(address).receivedIOSamplesListeners) {
-                                    receivedIOSamplesListener.ioSamplesReceived(ioState);
-                                }
-
+                                parseIODataSampleRxIndicator(data);
                                 break;
                             default:
                                 logger.warn("Handle for frame type " + data[0] + " not implemented.");
@@ -1454,6 +1395,46 @@ public class LocalXBee implements XBee {
                 logger.error(ex);
             } catch (IOException ex) {
                 logger.error(ex);
+            }
+        }
+
+        private void parseIODataSampleRxIndicatorPayload(int idx, int[] data, XBeeAddress address) throws XBeeOperationFailedException {
+            // Num samples (1):
+            idx++;
+
+            HashMap<Digital_IO_Pin, Boolean> digitalIOState = new HashMap<Digital_IO_Pin, Boolean>();
+            HashMap<Analog_IO_Pin, Double> analogIOState = new HashMap<Analog_IO_Pin, Double>();
+
+            long enabledDigitalIOValue = data[idx++] << 8;
+            enabledDigitalIOValue = enabledDigitalIOValue | data[idx++];
+
+            List<Digital_IO_Pin> enabledDigitalIOPins = readEnabledBits(Digital_IO_Pin.class, 13, enabledDigitalIOValue);
+            long enabledAnalogIOValue = data[idx++];
+
+            List<Analog_IO_Pin> enabledAnalogIOPins = readEnabledBits(Analog_IO_Pin.class, 6, enabledAnalogIOValue);
+
+            if (!enabledDigitalIOPins.isEmpty()) {
+                long digitalIOStateValue = data[idx++] << 8;
+                digitalIOStateValue = digitalIOStateValue | data[idx++];
+                List<Digital_IO_Pin> tempEnabledDigitalIOState = readEnabledBits(Digital_IO_Pin.class, 13, digitalIOStateValue);
+                for (Digital_IO_Pin digital_IO_Pin : enabledDigitalIOPins) {
+                    if (tempEnabledDigitalIOState.contains(digital_IO_Pin)) {
+                        digitalIOState.put(digital_IO_Pin, Boolean.TRUE);
+                    } else {
+                        digitalIOState.put(digital_IO_Pin, Boolean.FALSE);
+                    }
+                }
+            }
+
+            for (Analog_IO_Pin analog_IO_Pin : enabledAnalogIOPins) {
+                long value = data[idx++] << 8;
+                value = value | data[idx++];
+                analogIOState.put(analog_IO_Pin, (double) value);
+            }
+
+            IOState ioState = new IOState(digitalIOState, analogIOState);
+            for (ReceivedIOSamplesListener receivedIOSamplesListener : openRemoteXBee(address).receivedIOSamplesListeners) {
+                receivedIOSamplesListener.ioSamplesReceived(ioState);
             }
         }
 
@@ -1519,7 +1500,7 @@ public class LocalXBee implements XBee {
             return data;
         }
 
-        private void parseExplicitRxIndicator(int[] data) {
+        private void parseExplicitRxIndicator(int[] data) throws XBeeOperationFailedException {
 
             int idx = 1;
 
@@ -1556,10 +1537,14 @@ public class LocalXBee implements XBee {
             // Receive Options:
             idx++;
 
-            int[] rfData = Arrays.copyOfRange(data, idx, data.length);
+            if (nodesListeningTo.contains(address) && workingAPIOutputFormat.equals(workingAPIOutputFormat.EXPLICIT_ADDRESSING_DATA_FRAMES)) {
+                parseIODataSampleRxIndicatorPayload(idx, data, address);
+            } else {
+                int[] rfData = Arrays.copyOfRange(data, idx, data.length);
 
-            for (XBeeInputStream xBeeInputStream : inputStreams) {
-                xBeeInputStream.newData(rfData, address, sourceEndpoint, destinationEndpoint, clusterId, profileId);
+                for (XBeeInputStream xBeeInputStream : inputStreams) {
+                    xBeeInputStream.newData(rfData, address, sourceEndpoint, destinationEndpoint, clusterId, profileId);
+                }
             }
         }
 
@@ -1604,6 +1589,35 @@ public class LocalXBee implements XBee {
                 xBeeInputStream.newData(rfData, address, sourceEndpoint, destinationEndpoint, clusterId, profileId);
             }
         }
+
+        private void parseIODataSampleRxIndicator(int[] data) throws XBeeOperationFailedException {
+            int idx = 1;
+
+            long highBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                highBytes = highBytes << 8;
+                highBytes = highBytes | data[idx++];
+            }
+
+            long lowBytes = data[idx++];
+
+            for (int i = 0; i < 3; i++) {
+                lowBytes = lowBytes << 8;
+                lowBytes = lowBytes | data[idx++];
+            }
+
+            XBeeAddress address = new XBeeAddress(highBytes, lowBytes);
+
+            // Network Address:
+            idx++;
+            idx++;
+
+            // Receive Options:
+            idx++;
+
+            parseIODataSampleRxIndicatorPayload(idx, data, address);
+        }
     }
 
     public class RemoteXBee extends LocalXBee implements XBee {
@@ -1618,6 +1632,7 @@ public class LocalXBee implements XBee {
             this.frameIDGenerator = LocalXBee.this.frameIDGenerator;
             this.listener = LocalXBee.this.listener;
             this.lock = LocalXBee.this.lock;
+            this.nodesListeningTo = LocalXBee.this.nodesListeningTo;
         }
 
         @Override
