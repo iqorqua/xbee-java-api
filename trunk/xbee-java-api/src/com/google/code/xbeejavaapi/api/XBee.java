@@ -182,7 +182,7 @@ public interface XBee {
 
     long getSampleFromSleepRate() throws XBeeOperationFailedException;
 
-    XBeeSerialNumber getSerialNumber() throws XBeeOperationFailedException;
+    XBeeAddress getSerialNumber() throws XBeeOperationFailedException;
 
     Sleep_Mode getSleepMode() throws XBeeOperationFailedException;
 
