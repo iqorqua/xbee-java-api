@@ -75,7 +75,7 @@ public class LocalXBee implements XBee {
             write("ATCN\r");
             readLine();
         } catch (IOException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             throw new XBeeOperationFailedException();
         }
     }
@@ -1206,7 +1206,7 @@ public class LocalXBee implements XBee {
                 write(0xFF - (sum % 256));
 
             } catch (IOException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                 throw new XBeeOperationFailedException();
             }
         }
@@ -1221,7 +1221,7 @@ public class LocalXBee implements XBee {
             in.close();
             out.close();
         } catch (IOException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
         }
     }
 
@@ -1298,7 +1298,7 @@ public class LocalXBee implements XBee {
                 try {
                     locks.get(id).wait(timeout);
                 } catch (InterruptedException ex) {
-                    logger.error(ex);
+                    logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                 }
             }
 
@@ -1371,7 +1371,7 @@ public class LocalXBee implements XBee {
                                 break;
                         }
                     } catch (ATCommandReturnedErrorException ex) {
-                        logger.error(ex);
+                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                         frame = ex;
                     }
                     if (frame != null && frame instanceof FrameWithID) {
@@ -1390,11 +1390,11 @@ public class LocalXBee implements XBee {
                     logger.debug("API Frame: " + frame);
                 }
             } catch (XBeeOperationFailedException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             } catch (ChecksumFailedException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             } catch (IOException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
         }
 
@@ -1463,7 +1463,7 @@ public class LocalXBee implements XBee {
                     }
                 }
             } catch (Exception ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
 
             return enabledBits;
@@ -1722,7 +1722,7 @@ public class LocalXBee implements XBee {
                                 try {
                                     flush();
                                 } catch (IOException ex) {
-                                    logger.error(ex);
+                                    logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                 }
                             }
                         }, timeout);

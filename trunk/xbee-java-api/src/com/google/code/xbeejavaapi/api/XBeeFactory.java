@@ -55,13 +55,13 @@ public class XBeeFactory {
                     logger.error(serialPortName + " is not a serial port");
                 }
             } catch (NoSuchPortException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             } catch (IOException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             } catch (UnsupportedCommOperationException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             } catch (PortInUseException ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
             return null;
         }

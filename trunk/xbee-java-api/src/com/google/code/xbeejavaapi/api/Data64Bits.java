@@ -4,13 +4,14 @@
  */
 package com.google.code.xbeejavaapi.api;
 
+import java.io.Serializable;
 import org.apache.log4j.Logger;
 
 /**
  *
  * @author David Miguel Antunes <davidmiguel [ at ] antunes.net>
  */
-public class Data64Bits {
+public class Data64Bits implements Serializable {
 
     private static final Logger logger = Logger.getLogger(Data64Bits.class);
     private long highBytes;

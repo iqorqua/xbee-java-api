@@ -347,7 +347,7 @@ public class DataStreams extends javax.swing.JPanel {
             streamsTabbedPane.add("Streams "+counter++, tab);
 
         } catch (Exception e) {
-            logger.error(e);
+            logger.error(e + " at " + e.getStackTrace()[0].toString());
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed

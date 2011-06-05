@@ -132,7 +132,7 @@ public class IO extends javax.swing.JPanel implements ReceivedIOSamplesListener 
                     try {
                         xbee.forceSample();
                     } catch (XBeeOperationFailedException ex) {
-                        logger.error(ex);
+                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                     }
                 }
             });

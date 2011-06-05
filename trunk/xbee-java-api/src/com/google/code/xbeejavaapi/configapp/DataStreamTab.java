@@ -40,7 +40,7 @@ public class DataStreamTab extends javax.swing.JPanel {
                         int i = is.read();
                         isTextArea.setText(isTextArea.getText() + (char) i);
                     } catch (IOException ex) {
-                        logger.error(ex);
+                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                     }
                 }
             }
@@ -124,7 +124,7 @@ public class DataStreamTab extends javax.swing.JPanel {
             char c = evt.getKeyChar();
             os.write((int) c);
         } catch (IOException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
         }
     }//GEN-LAST:event_osTextAreaKeyTyped
     // Variables declaration - do not modify//GEN-BEGIN:variables
