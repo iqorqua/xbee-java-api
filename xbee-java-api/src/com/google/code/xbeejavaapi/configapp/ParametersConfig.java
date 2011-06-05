@@ -110,7 +110,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                                 method.invoke(xbee, new Object[]{value});
                                                 update(method);
                                             } catch (Exception ex) {
-                                                logger.error(ex);
+                                                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                             }
                                         }
                                     });
@@ -127,7 +127,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                         defaultComboBoxModel = new DefaultComboBoxModel((Object[]) parameter.getMethod("values", new Class[]{}).invoke(null, new Object[]{}));
                                         jComboBox.setModel(defaultComboBoxModel);
                                     } catch (Exception ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                         panel = new JPanel();
                                     }
                                     button.addActionListener(new ActionListener() {
@@ -139,7 +139,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                                 method.invoke(xbee, new Object[]{enumElement});
                                                 update(method);
                                             } catch (Exception ex) {
-                                                logger.error(ex);
+                                                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                                 ex.printStackTrace();
                                             }
                                         }
@@ -160,7 +160,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                                 method.invoke(xbee, new Object[]{jTextField.getText()});
                                                 update(method);
                                             } catch (Exception ex) {
-                                                logger.error(ex);
+                                                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                                 ex.printStackTrace();
                                             }
                                         }
@@ -191,7 +191,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                                             try {
                                                 selected.addAll((Collection) XBee.class.getMethod(method.getName().replaceFirst("set", "get"), new Class[0]).invoke(xbee, new Object[0]));
                                             } catch (Exception ex) {
-                                                logger.error(ex);
+                                                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                             }
 
                                             for (Object object : values) {
@@ -223,22 +223,22 @@ public class ParametersConfig extends javax.swing.JPanel {
                                                         method.invoke(xbee, new Object[]{c});
                                                         update(method);
                                                     } catch (Exception ex) {
-                                                        logger.error(ex);
+                                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                                         ex.printStackTrace();
                                                     }
                                                 }
                                             });
                                         }
                                     } catch (IllegalAccessException ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                     } catch (IllegalArgumentException ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                     } catch (InvocationTargetException ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                     } catch (NoSuchMethodException ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                     } catch (SecurityException ex) {
-                                        logger.error(ex);
+                                        logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                                     }
                                 }
                             }
@@ -276,7 +276,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                     tableModel.addRow(new Object[]{method.getName().replace("get", ""), value});
                     propertyNames.add(method.getName().replace("get", ""));
                 } catch (Exception ex) {
-                    logger.error(ex);
+                    logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                     ex.printStackTrace();
                 }
             }
@@ -302,7 +302,7 @@ public class ParametersConfig extends javax.swing.JPanel {
                             value = valueToString(value);
                             tableModel.setValueAt(value, i, 1);
                         } catch (Exception ex) {
-                            logger.error(ex);
+                            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                             ex.printStackTrace();
                         }
                     }

@@ -169,7 +169,7 @@ public class NodeDiscovery extends javax.swing.JPanel {
                     }
                     nodesList.setListData(nodes.toArray());
                 } catch (XBeeOperationFailedException ex) {
-                    logger.error(ex);
+                    logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                 } finally {
                     jButton2.setEnabled(true);
                     jButton2.setText("Search");

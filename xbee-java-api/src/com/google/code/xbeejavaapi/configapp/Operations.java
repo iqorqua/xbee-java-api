@@ -80,10 +80,10 @@ public class Operations extends javax.swing.JPanel {
                         try {
                             method.invoke(xbee, new Object[]{});
                         } catch (InvocationTargetException ex) {
-                            logger.error(ex);
+                            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                             logger.error(ex.getCause());
                         } catch (Exception ex) {
-                            logger.error(ex);
+                            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
                         }
                     }
                 });

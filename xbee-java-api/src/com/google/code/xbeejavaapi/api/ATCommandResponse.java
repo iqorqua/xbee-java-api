@@ -174,7 +174,7 @@ public abstract class ATCommandResponse extends FrameWithID {
                     }
                 }
             } catch (Exception ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
         }
 
@@ -223,7 +223,7 @@ public abstract class ATCommandResponse extends FrameWithID {
                     }
                 }
             } catch (Exception ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
         }
 
@@ -623,7 +623,7 @@ public abstract class ATCommandResponse extends FrameWithID {
                     }
                 }
             } catch (Exception ex) {
-                logger.error(ex);
+                logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             }
 
             return enabledBits;

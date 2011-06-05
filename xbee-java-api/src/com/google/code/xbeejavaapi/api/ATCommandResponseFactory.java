@@ -55,25 +55,25 @@ public class ATCommandResponseFactory {
             return atCommandResponse;
 
         } catch (InstantiationException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (IllegalAccessException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (IllegalArgumentException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (InvocationTargetException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (NoSuchMethodException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (SecurityException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         } catch (ClassNotFoundException ex) {
-            logger.error(ex);
+            logger.error(ex + " at " + ex.getStackTrace()[0].toString());
             e = ex;
         }
         throw new XBeeOperationFailedException("Reflection exception", e);
