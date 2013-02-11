@@ -22,12 +22,13 @@ public abstract class ATCommandResponse extends FrameWithID {
 
     public enum CommandStatus {
 
+        UNKNOWN(-1),
         OK(0),
         ERROR(1),
         InvalidCommand(2),
         InvalidParameter(3);
         private int value;
-        private static Map<Integer, CommandStatus> values = new HashMap<Integer, CommandStatus>();
+        private final static Map<Integer, CommandStatus> values = new HashMap<Integer, CommandStatus>();
 
         static {
             for (int i = 0; i < values().length; i++) {
@@ -41,7 +42,11 @@ public abstract class ATCommandResponse extends FrameWithID {
         }
 
         public static CommandStatus get(int value) {
-            return values.get(value);
+            if (values.containsKey(value)) {
+                return values.get(value);
+            } else {
+                return UNKNOWN;
+            }
         }
     }
     private static final Logger logger = Logger.getLogger(ATCommandResponse.class);
